@@ -1,0 +1,355 @@
+# Comprehensive CI/CD Pipeline for MCP Python Analyzer
+# Combines testing, pre-commit, Python publishing, and Docker deployment
+# Based on best practices from useful-optimizer and dracula-palette workflows
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: '3.11'  # Default Python version
+  UV_CACHE_DIR: ~/.cache/uv
+
+jobs:
+  # ============================================================================
+  # Pre-commit and Code Quality (Python 3.11 only)
+  # ============================================================================
+  pre-commit:
+    name: Pre-commit & Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/uv.lock
+            **/pyproject.toml  # cspell:disable-line
+
+      - name: Cache uv dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.UV_CACHE_DIR }}
+          key: uv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/uv.lock') }}
+          restore-keys: |
+            uv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-
+            uv-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev --locked
+          uv tool install pre-commit
+
+      - name: Run pre-commit hooks
+        run: |
+          uv tool run pre-commit install
+          uv tool run pre-commit run --all-files --show-diff-on-failure
+
+  # ============================================================================
+  # Testing and Quality Assurance
+  # ============================================================================
+  test-and-quality:
+    name: Test & Quality (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    needs: pre-commit
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/uv.lock
+            **/pyproject.toml  # cspell:disable-line
+
+      - name: Cache uv dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.UV_CACHE_DIR }}
+          key: uv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/uv.lock') }}
+          restore-keys: |
+            uv-${{ runner.os }}-${{ matrix.python-version }}-
+            uv-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev --locked
+
+      - name: Run pytest with coverage  # cspell:disable-line
+        env:
+          PYTHONPATH: src  # cspell:disable-line
+        run: |
+            uv run pytest tests/ -v --cov=src/mcp_server_analyzer --cov-report=xml --cov-report=html --cov-report=term-missing --tb=short
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests  # cspell:disable-line
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Upload coverage artifacts
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/  # cspell:disable-line
+
+  # ============================================================================
+  # Build Python Distribution Packages
+  # ============================================================================
+  build-python:
+    name: Build Python Package 📦
+    runs-on: ubuntu-latest
+    needs: test-and-quality
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build and twine tools
+        run: |
+          pip install build twine
+
+      - name: Build distribution packages
+        run: |
+          python -m build
+
+      - name: Check distribution packages
+        run: |
+          python -m twine check dist/*
+
+      - name: Store distribution packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+  # ============================================================================
+  # Build and Push Docker Images
+  # ============================================================================
+  build-docker:
+    name: Build Docker Image 🐳
+    runs-on: ubuntu-latest
+    needs: test-and-quality
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write  # for signing images with Cosign
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Set up Docker Buildx  # cspell:disable-line
+        uses: docker/setup-buildx-action@v3  # cspell:disable-line
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Cosign for image signing
+        uses: sigstore/cosign-installer@v3.7.0  # cspell:disable-line
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Sign Docker images with Cosign
+        env:
+          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          images=""
+          for tag in ${TAGS}; do
+            images+="${tag}@${DIGEST} "
+          done
+          cosign sign --yes ${images}
+
+  # ============================================================================
+  # Publish to TestPyPI (for testing)  # cspell:disable-line
+  # ============================================================================
+  publish-testpypi:  # cspell:disable-line
+    name: Publish to TestPyPI 🧪  # cspell:disable-line
+    runs-on: ubuntu-latest
+    needs: build-python
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: testpypi  # cspell:disable-line
+      url: https://test.pypi.org/p/mcp-server-analyzer
+    permissions:
+      id-token: write  # for trusted publishing
+
+    steps:
+      - name: Download distribution packages
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Publish to TestPyPI  # cspell:disable-line
+        uses: pypa/gh-action-pypi-publish@release/v1  # cspell:disable-line
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+          print-hash: true
+
+  # ============================================================================
+  # Publish to PyPI (production)  # cspell:disable-line
+  # ============================================================================
+  publish-pypi:  # cspell:disable-line
+    name: Publish to PyPI 🚀  # cspell:disable-line
+    runs-on: ubuntu-latest
+    needs: build-python
+    if: startsWith(github.ref, 'refs/tags/')
+    environment:
+      name: pypi  # cspell:disable-line
+      url: https://pypi.org/p/mcp-server-analyzer
+    permissions:
+      id-token: write  # for trusted publishing
+
+    steps:
+      - name: Download distribution packages
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Publish to PyPI  # cspell:disable-line
+        uses: pypa/gh-action-pypi-publish@release/v1  # cspell:disable-line
+
+  # ============================================================================
+  # Create GitHub Release with Signed Artifacts
+  # ============================================================================
+  github-release:
+    name: Create GitHub Release 📋
+    runs-on: ubuntu-latest
+    needs: [publish-pypi, build-docker]  # cspell:disable-line
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+      id-token: write  # for signing artifacts
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download distribution packages
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Sign artifacts with Sigstore  # cspell:disable-line
+        uses: sigstore/gh-action-sigstore-python@v3.0.1  # cspell:disable-line
+        with:
+          inputs: >-
+            ./dist/*.tar.gz
+            ./dist/*.whl
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          gh release create '${{ steps.version.outputs.tag }}' \
+            --repo '${{ github.repository }}' \
+            --title 'Release ${{ steps.version.outputs.tag }}' \
+            --notes "## MCP Python Analyzer ${{ steps.version.outputs.version }}
+
+          ### 🚀 What's New
+          - Automated release from tag ${{ steps.version.outputs.tag }}
+
+          ### 📦 Installation
+          \`\`\`bash
+          # Install via pip
+          pip install mcp-server-analyzer==${{ steps.version.outputs.version }}
+
+          # Install via uvx
+          uvx install mcp-server-analyzer==${{ steps.version.outputs.version }}
+
+          # Run with Docker
+          docker run ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+          \`\`\`
+
+          ### 🐳 Docker Images
+          - **Multi-arch**: \`ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}\`
+          - **Latest**: \`ghcr.io/${{ github.repository }}:latest\`
+          - **Platforms**: linux/amd64, linux/arm64
+          - **Signed**: All images signed with Cosign for security
+
+          ### 🔐 Security
+          - All artifacts signed with Sigstore  # cspell:disable-line
+          - Docker images signed with Cosign
+          - Published using GitHub OIDC trusted publishing"
+
+      - name: Upload signed artifacts to release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload '${{ steps.version.outputs.tag }}' dist/** \
+            --repo '${{ github.repository }}'
