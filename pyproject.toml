@@ -1,0 +1,161 @@
+
+
+[project]
+name = "mcp-server-analyzer"
+version = "0.1.1"
+description = "MCP server for Python code analysis with RUFF linting and VULTURE dead code detection"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "Anselm Hahn", email = "anselm.hahn@gmail.com" }]
+maintainers = [{ name = "Anselm Hahn", email = "anselm.hahn@gmail.com" }]
+keywords = [
+    "mcp",
+    "ruff",
+    "vulture",
+    "python",
+    "code-analysis",
+    "linting",
+    "static-analysis",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "fastmcp>=0.3.0",
+    "ruff>=0.8.0",
+    "vulture>=2.11",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "mypy>=1.0.0",
+    "black>=23.0.0",
+    "bandit>=1.7.0",
+    "safety>=2.0.0",
+    "pre-commit>=3.0.0",
+]
+test = ["pytest>=8.4.1", "pytest-asyncio>=0.21.0", "pytest-cov>=4.0.0"]
+
+[project.scripts]
+mcp-server-analyzer = "mcp_server_analyzer.server:main"
+
+[project.urls]
+Homepage = "https://github.com/anselmoo/mcp-server-analyzer"
+Documentation = "https://github.com/anselmoo/mcp-server-analyzer"
+Repository = "https://github.com/anselmoo/mcp-server-analyzer"
+Issues = "https://github.com/anselmoo/mcp-server-analyzer/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_server_analyzer"]
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "mypy>=1.0.0",
+]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest"
+test-cov = "pytest --cov=src/mcp_server_analyzer --cov-report=xml --cov-report=html"
+type-check = "mypy src"
+lint = "ruff check src tests"
+format = "ruff format src tests"
+format-check = "ruff format --check src tests"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "W",
+    "C90",
+    "I",
+    "N",
+    "UP",
+    "B",
+    "A",
+    "C4",
+    "PIE",
+    "T20",
+    "PT",
+    "RET",
+    "SIM",
+    "TID",
+    "ARG",
+    "PL",
+    "RUF",
+]
+ignore = ["E501"] # Line too long handled by formatter
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint.per-file-ignores]
+"test_*.py" = ["PLR2004", "PLC0415"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.vulture]
+# VULTURE configuration for dead code detection
+min_confidence = 80
+sort_by_size = true
+paths = ["src/"]
+exclude = ["tests/", ".venv/", "__pycache__/"]
+ignore_names = ["_*", "test_*"]
+ignore_decorators = ["@pytest.fixture", "@app.tool"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config --verbose"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "asyncio: marks tests as async tests",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv", "build", "dist"]
+skips = ["B101", "B601"]
+
+[tool.bandit.assert_used]
+skips = ["*/*test*.py", "*/test_*.py"]
+
+[dependency-groups]
+dev = ["pytest>=8.4.1", "pytest-cov>=6.2.1"]
