@@ -105,16 +105,14 @@ jobs:
         env:
           PYTHONPATH: src  # cspell:disable-line
         run: |
-            uv run pytest tests/ -v --cov=src/mcp_server_analyzer --cov-report=xml --cov-report=html --cov-report=term-missing --tb=short
+            uv run pytest tests/ -v --cov=src/mcp_server_analyzer --cov-report=xml --cov-report=html --cov-report=term-missing --tb=short --junitxml=junit.xml -o junit_family=legacy
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
-          file: ./coverage.xml
-          flags: unittests  # cspell:disable-line
-          name: codecov-umbrella
-          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: anselmoo/mcp-server-analyzer
 
       - name: Upload coverage artifacts
         if: matrix.python-version == '3.11'
