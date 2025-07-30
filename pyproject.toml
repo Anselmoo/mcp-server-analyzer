@@ -2,7 +2,7 @@
 
 [project]
 name = "mcp-server-analyzer"
-version = "0.1.1"
+version = "0.1.2"
 description = "MCP server for Python code analysis with RUFF linting and VULTURE dead code detection"
 readme = "README.md"
 license = { text = "MIT" }
