@@ -1,4 +1,4 @@
-# Example of running `vulture-scan`
+# Example of running `ruff-check`
 
 ## Input:
 
