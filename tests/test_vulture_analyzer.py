@@ -1,8 +1,5 @@
 """Enhanced tests for VultureAnalyzer with improved coverage."""
 
-import tempfile
-from pathlib import Path
-
 from mcp_server_analyzer.analyzers.vulture import VultureAnalyzer
 
 

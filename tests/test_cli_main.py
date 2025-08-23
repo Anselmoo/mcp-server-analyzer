@@ -1,15 +1,13 @@
 """Enhanced tests for CLI and main entry points."""
 
-import sys
-
 
 def test_main_module_import():
     """Test __main__ module can be imported."""
     try:
         import mcp_server_analyzer.__main__
         assert True
-    except ImportError:
-        assert False, "__main__ module should be importable"
+    except ImportError as e:
+        assert False, f"__main__ module should be importable: {e}"
 
 
 def test_main_function_exists():
@@ -135,7 +133,10 @@ def test_basic_imports():
         from mcp_server_analyzer.models import RuffIssue, VultureItem
         from mcp_server_analyzer.analyzers import RuffAnalyzer, VultureAnalyzer
 
-        assert all(x is not None for x in [app, main, logger, RuffIssue, VultureItem, RuffAnalyzer])
+        assert all(
+            x is not None
+            for x in [app, main, logger, RuffIssue, VultureItem, RuffAnalyzer]
+        )
 
     except Exception as e:
         assert False, f"Basic imports test failed: {e}"

@@ -135,7 +135,7 @@ def test_server_error_handling():
             # Even with invalid code, should return a result structure
             assert isinstance(result, dict)
         except Exception:
-            # If it raises an exception, that's also acceptable
+            # If it raises an exception, that's also acceptable for invalid code
             pass
 
         try:
@@ -143,7 +143,7 @@ def test_server_error_handling():
             # Even with invalid code, should return a result structure
             assert isinstance(result, dict)
         except Exception:
-            # If it raises an exception, that's also acceptable
+            # If it raises an exception, that's also acceptable for invalid code
             pass
 
     except Exception as e:

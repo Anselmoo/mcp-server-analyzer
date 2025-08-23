@@ -180,7 +180,9 @@ print('hello')
     except Exception as e:
         assert False, f"Confidence filtering integration failed: {e}"
 
-    def test_full_analysis_workflow_with_issues(self, sample_code_with_issues: str) -> None:
+    def test_full_analysis_workflow_with_issues(
+        self, sample_code_with_issues: str
+    ) -> None:
         """Test complete analysis workflow with problematic code."""
         from mcp_server_analyzer.server import analyze_code
 
@@ -354,7 +356,7 @@ print('hello')
                 assert result["high_confidence_items"] == 1
 
     def test_configuration_parameter_propagation(self) -> None:
-        """Test that configuration parameters are properly propagated through the workflow."""
+        """Test that configuration parameters are properly propagated."""
         from mcp_server_analyzer.server import analyze_code, ruff_check, ruff_format
 
         test_code = "print('hello')"
@@ -367,9 +369,13 @@ print('hello')
             with patch("mcp_server_analyzer.server.ruff_analyzer") as mock_ruff:
                 with patch("mcp_server_analyzer.server.vulture_analyzer") as mock_vulture:
                     mock_ruff.check_code.return_value = mock_ruff_result
-                    mock_vulture.scan_code.return_value = VultureScanResult(unused_items=[], total_items=0, high_confidence_items=0)
+                    mock_vulture.scan_code.return_value = VultureScanResult(
+                        unused_items=[], total_items=0, high_confidence_items=0
+                    )
 
-                    analyze_code(test_code, ruff_config_path=config_path, min_confidence=90)
+                    analyze_code(
+                        test_code, ruff_config_path=config_path, min_confidence=90
+                    )
 
                     mock_ruff.check_code.assert_called_with(test_code, config_path)
                     mock_vulture.scan_code.assert_called_with(test_code, 90)

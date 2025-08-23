@@ -66,9 +66,9 @@ def test_main_module_executable():
         import mcp_server_analyzer.__main__
         # If it imports without error, it's good
         assert True
-    except ImportError:
+    except ImportError as e:
         # If __main__.py doesn't exist or has issues
-        assert False, "Failed to import __main__ module"
+        assert False, f"Failed to import __main__ module: {e}"
 
 
 def test_ruff_analyzer_class_structure():
