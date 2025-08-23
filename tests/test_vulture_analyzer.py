@@ -15,11 +15,11 @@ def test_vulture_analyzer_init():
 def test_vulture_analyzer_scan_code_basic():
     """Test basic code scanning functionality."""
     analyzer = VultureAnalyzer()
-    
+
     # Test clean code
     clean_code = "print('hello world')"
     result = analyzer.scan_code(clean_code)
-    
+
     assert hasattr(result, "total_items")
     assert hasattr(result, "unused_items")
     assert hasattr(result, "high_confidence_items")
@@ -30,7 +30,7 @@ def test_vulture_analyzer_scan_code_basic():
 def test_vulture_analyzer_scan_code_with_unused():
     """Test code scanning with unused items."""
     analyzer = VultureAnalyzer()
-    
+
     # Code with unused function and variable
     code_with_unused = """
 import os
@@ -45,9 +45,9 @@ def main():
 if __name__ == "__main__":
     main()
 """
-    
+
     result = analyzer.scan_code(code_with_unused)
-    
+
     assert result.total_items >= 0
     assert isinstance(result.unused_items, list)
 
@@ -55,16 +55,16 @@ if __name__ == "__main__":
 def test_vulture_analyzer_with_confidence():
     """Test analyzer with different confidence levels."""
     analyzer = VultureAnalyzer()
-    
+
     test_code = """
 import os
-unused_var = "not used" 
+unused_var = "not used"
 print('hello')
 """
-    
+
     # Test different confidence thresholds
     confidence_levels = [60, 80, 90, 100]
-    
+
     for confidence in confidence_levels:
         result = analyzer.scan_code(test_code, min_confidence=confidence)
         assert result.total_items >= 0
@@ -75,7 +75,7 @@ print('hello')
 def test_vulture_analyzer_different_code_samples():
     """Test analyzer with different code samples."""
     analyzer = VultureAnalyzer()
-    
+
     code_samples = [
         "",  # Empty code
         "print('hello')",  # Simple code
@@ -83,7 +83,7 @@ def test_vulture_analyzer_different_code_samples():
         "def func():\n    pass\nprint('used')",  # Function definition
         "class MyClass:\n    pass\nMyClass()",  # Class definition with usage
     ]
-    
+
     for code in code_samples:
         result = analyzer.scan_code(code)
         assert result.total_items >= 0

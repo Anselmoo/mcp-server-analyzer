@@ -19,7 +19,7 @@ def test_ruff_issue_creation():
         message="'os' imported but unused",
         severity="error",
     )
-    
+
     assert issue.line == 10
     assert issue.column == 5
     assert issue.rule == "F401"
@@ -42,7 +42,7 @@ def test_ruff_issue_with_optional_fields():
         severity="error",
         fixable=True,
     )
-        
+
     assert issue.end_line == 12
     assert issue.end_column == 15
     assert issue.fixable is True
@@ -55,7 +55,7 @@ def test_ruff_check_result_empty():
         total_issues=0,
         fixable_issues=0,
     )
-    
+
     assert result.issues == []
     assert result.total_issues == 0
     assert result.fixable_issues == 0
@@ -68,16 +68,16 @@ def test_ruff_check_result_with_issues():
             line=1, column=1, rule="F401", message="unused import", severity="error"
         ),
         RuffIssue(
-            line=2, column=1, rule="E302", message="expected 2 blank lines", severity="warning"  
+            line=2, column=1, rule="E302", message="expected 2 blank lines", severity="warning"
         ),
     ]
-    
+
     result = RuffCheckResult(
         issues=issues,
         total_issues=2,
         fixable_issues=1,
     )
-    
+
     assert len(result.issues) == 2
     assert result.total_issues == 2
     assert result.fixable_issues == 1
@@ -93,7 +93,7 @@ def test_vulture_item_creation():
         confidence=80,
         message="unused function 'unused_function'",
     )
-    
+
     assert item.name == "unused_function"
     assert item.type == "function"
     assert item.line == 5
@@ -109,7 +109,7 @@ def test_vulture_scan_result_empty():
         total_items=0,
         high_confidence_items=0,
     )
-    
+
     assert result.unused_items == []
     assert result.total_items == 0
     assert result.high_confidence_items == 0
@@ -123,13 +123,13 @@ def test_analysis_result_creation():
     vulture_result = VultureScanResult(
         unused_items=[], total_items=0, high_confidence_items=0
     )
-    
+
     analysis = AnalysisResult(
         ruff_result=ruff_result,
         vulture_result=vulture_result,
         quality_score=100,
     )
-    
+
     assert analysis.quality_score == 100
     assert analysis.ruff_result.total_issues == 0
     assert analysis.vulture_result.total_items == 0
@@ -140,13 +140,13 @@ def test_model_serialization():
     issue = RuffIssue(
         line=1, column=1, rule="F401", message="test", severity="error"
     )
-    
+
     # Test model_dump (JSON serialization)
     data = issue.model_dump()
     assert data["line"] == 1
     assert data["rule"] == "F401"
-    
-    # Test model_validate (deserialization) 
+
+    # Test model_validate (deserialization)
     recreated = RuffIssue.model_validate(data)
     assert recreated.line == issue.line
     assert recreated.rule == issue.rule
@@ -160,7 +160,7 @@ def test_ruff_format_result_unchanged():
         formatted_code=original_code,
         changed=False,
     )
-    
+
     assert result.formatted_code == original_code
     assert result.changed is False
 
@@ -173,6 +173,6 @@ def test_ruff_format_result_changed():
         formatted_code=formatted_code,
         changed=True,
     )
-    
+
     assert result.formatted_code == formatted_code
     assert result.changed is True
