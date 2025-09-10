@@ -192,6 +192,16 @@ cython_debug/
 # Ruff stuff:
 .ruff_cache/
 
+# Node.js / JavaScript ecosystem
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn/
+package-lock.json
+yarn.lock
+
 # PyPI configuration file
 .pypirc
 

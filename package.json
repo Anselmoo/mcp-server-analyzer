@@ -1,0 +1,27 @@
+{
+  "name": "mcp-server-analyzer",
+  "version": "0.1.2",
+  "description": "MCP server for Python code analysis with RUFF linting, VULTURE dead code detection, and Biome JS/TS support",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@biomejs/biome": "^1.9.4"
+  },
+  "scripts": {
+    "biome:check": "biome check .",
+    "biome:format": "biome format .",
+    "biome:lint": "biome lint .",
+    "biome:ci": "biome ci ."
+  },
+  "keywords": [
+    "mcp",
+    "biome",
+    "javascript",
+    "typescript",
+    "linting",
+    "formatting",
+    "code-analysis"
+  ]
+}

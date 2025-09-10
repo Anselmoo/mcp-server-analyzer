@@ -1,13 +1,14 @@
-# MCP Server Analyzer for Python 🐍🔍
+# MCP Server Analyzer for Python + JavaScript/TypeScript 🐍📜🔍
 
 [![CI/CD Pipeline](https://github.com/anselmoo/mcp-server-analyzer/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/anselmoo/mcp-server-analyzer/actions/workflows/ci-cd.yml)
 [![PyPI version](https://badge.fury.io/py/mcp-server-analyzer.svg)](https://badge.fury.io/py/mcp-server-analyzer)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Node.js 18+](https://img.shields.io/badge/node.js-18+-green.svg)](https://nodejs.org/)
 [![Docker](https://img.shields.io/badge/docker-available-blue.svg)](https://github.com/anselmoo/mcp-server-analyzer/pkgs/container/mcp-server-analyzer)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code Coverage](https://codecov.io/gh/anselmoo/mcp-server-analyzer/branch/main/graph/badge.svg)](https://codecov.io/gh/anselmoo/mcp-server-analyzer)
 
-A powerful [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that provides comprehensive Python code analysis using [**RUFF**](https://docs.astral.sh/ruff/) for linting and [**VULTURE**](https://github.com/jendrikseipp/vulture) for dead code detection. Perfect for AI assistants, IDEs, and automated code review workflows.
+A powerful [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that provides comprehensive code analysis for both **Python** and **JavaScript/TypeScript** projects. Uses [**RUFF**](https://docs.astral.sh/ruff/) and [**VULTURE**](https://github.com/jendrikseipp/vulture) for Python analysis, and [**Biome**](https://biomejs.dev/) for JavaScript/TypeScript analysis. Perfect for AI assistants, IDEs, and automated code review workflows in mixed-language projects.
 
 ## 🚀 Quick Start
 
@@ -76,32 +77,57 @@ uv run mcp-server-analyzer
 
 ## 📋 Features
 
+### Python Analysis
 - **🔍 RUFF Analysis**: Comprehensive Python linting with auto-fixes
 - **🧹 Dead Code Detection**: Find unused imports, functions, and variables with VULTURE
-- **📊 Quality Scoring**: Combined analysis with quality metrics
+
+### JavaScript/TypeScript Analysis  
+- **⚡ Biome Integration**: Fast linting, formatting, and organizing imports for JS/TS
+- **🔧 Multi-language Support**: Handle .js, .ts, .jsx, .tsx files seamlessly
+- **🎯 Modern Tooling**: Leverage Biome's performance optimizations
+
+### Universal Features
+- **📊 Quality Scoring**: Combined analysis with quality metrics for mixed projects
 - **🚀 FastMCP Framework**: High-performance MCP server implementation
 - **🐳 Docker Ready**: Multi-architecture containers with security signing
 - **🔒 Secure**: All releases signed with Sigstore for supply chain security
 
 ## 📈 Analysis Examples
 
-### RUFF Linting Preview
+### RUFF Python Linting Preview
 
-See comprehensive linting analysis examples: **[📋 RUFF Analysis Preview](examples/preview-ruff.md)**
+See comprehensive Python linting analysis examples: **[📋 RUFF Analysis Preview](examples/preview-ruff.md)**
 
 ### VULTURE Dead Code Detection Preview
 
-Explore dead code detection capabilities: **[🧹 VULTURE Analysis Preview](examples/preview-vulture.md)**
+Explore Python dead code detection capabilities: **[🧹 VULTURE Analysis Preview](examples/preview-vulture.md)**
+
+### Biome JavaScript/TypeScript Analysis Preview
+
+Experience modern JS/TS code analysis capabilities: **[🔧 Biome Analysis Preview](examples/preview-biome.md)**
 
 ## 🛠️ Available Tools
 
+### Python Tools
 | Tool            | Description                      | Use Case                             |
 | --------------- | -------------------------------- | ------------------------------------ |
 | `ruff-check`    | Lint Python code with RUFF       | Style violations, potential errors   |
 | `ruff-format`   | Format Python code with RUFF     | Code formatting and consistency      |
 | `ruff-check-ci` | CI/CD optimized RUFF output      | GitHub Actions, GitLab CI            |
 | `vulture-scan`  | Dead code detection              | Unused imports, functions, variables |
-| `analyze-code`  | Combined RUFF + VULTURE analysis | Complete code quality assessment     |
+| `analyze-code`  | Combined RUFF + VULTURE analysis | Complete Python code quality assessment |
+
+### JavaScript/TypeScript Tools
+| Tool             | Description                       | Use Case                             |
+| ---------------- | --------------------------------- | ------------------------------------ |
+| `biome-check`    | Lint JS/TS code with Biome       | Style violations, potential errors   |
+| `biome-format`   | Format JS/TS code with Biome     | Code formatting and consistency      |
+| `biome-check-ci` | CI/CD optimized Biome output     | GitHub Actions, GitLab CI            |
+
+### Mixed Language Tools
+| Tool                 | Description                           | Use Case                             |
+| -------------------- | ------------------------------------- | ------------------------------------ |
+| `analyze-mixed-code` | Combined analysis for Python + JS/TS | Complete multi-language assessment  |
 
 ## 🔧 Configuration
 
@@ -139,6 +165,7 @@ Add to your Zed settings.json:
 
 - Python 3.10+
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
+- Node.js 18+ (for JavaScript/TypeScript support)
 - [Docker](https://docker.com) (optional)
 
 ### Setup
@@ -150,6 +177,9 @@ cd mcp-server-analyzer
 
 # Install dependencies
 uv sync --dev
+
+# Install Node.js dependencies for Biome support
+npm install
 
 # Run tests
 uv run pytest
@@ -176,11 +206,19 @@ uv run pytest tests/test_server.py::TestAnalyzer::test_ruff_analysis
 
 ## 📊 Quality Metrics
 
-The server provides quality scoring based on:
+The server provides comprehensive quality scoring for mixed-language projects:
 
+### Python Analysis
 - **RUFF Issues**: Style violations, potential bugs, complexity metrics
 - **Dead Code Detection**: Unused imports, functions, variables
-- **Combined Score**: Weighted quality assessment (0-100)
+
+### JavaScript/TypeScript Analysis
+- **Biome Issues**: Style violations, formatting inconsistencies, import organization
+- **Modern Standards**: ECMAScript compliance, TypeScript type checking support
+
+### Combined Scoring
+- **Mixed Project Score**: Weighted quality assessment (0-100) across all languages
+- **Language-specific Breakdown**: Individual scores for Python and JS/TS components
 
 ## 🔒 Security
 
@@ -214,10 +252,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - [Astral](https://astral.sh/) for RUFF and uv
-- [Jendrik Seipp](https://github.com/jendrikseipp) for VULTURE
+- [Jendrik Seipp](https://github.com/jendrikseipp) for VULTURE  
+- [Biome Team](https://biomejs.dev/) for the fast JavaScript/TypeScript toolchain
 - [Model Context Protocol](https://modelcontextprotocol.io/) team
 - [FastMCP](https://gofastmcp.com/) framework
 
 ---
 
-**Made with ❤️ for better Python code quality**
+**Made with ❤️ for better code quality across Python and JavaScript/TypeScript**

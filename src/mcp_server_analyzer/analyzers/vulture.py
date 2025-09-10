@@ -47,7 +47,7 @@ class VultureAnalyzer:
         Returns:
             VultureScanResult containing unused code items
         """
-        if not 0 <= min_confidence <= 100:  # noqa: PLR2004
+        if not 0 <= min_confidence <= 100:
             raise ValueError("min_confidence must be between 0 and 100")
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:

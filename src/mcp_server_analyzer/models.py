@@ -62,6 +62,40 @@ class VultureScanResult(BaseModel):
     )
 
 
+class BiomeIssue(BaseModel):
+    """Represents a Biome linting/formatting issue."""
+
+    line: int = Field(description="Line number where the issue occurs")
+    column: int = Field(description="Column number where the issue occurs")
+    end_line: int | None = Field(
+        None, description="End line number for multi-line issues"
+    )
+    end_column: int | None = Field(
+        None, description="End column number for multi-line issues"
+    )
+    rule: str = Field(description="Biome rule code")
+    message: str = Field(description="Human-readable description of the issue")
+    severity: str = Field(description="Issue severity level")
+    fixable: bool = Field(False, description="Whether the issue can be auto-fixed")
+    file_path: str | None = Field(None, description="File path where the issue occurs")
+
+
+class BiomeCheckResult(BaseModel):
+    """Result of Biome check operation."""
+
+    issues: list[BiomeIssue] = Field(description="List of linting issues found")
+    total_issues: int = Field(description="Total number of issues")
+    fixable_issues: int = Field(description="Number of auto-fixable issues")
+    files_checked: int = Field(0, description="Number of files checked")
+
+
+class BiomeFormatResult(BaseModel):
+    """Result of Biome format operation."""
+
+    formatted_code: str = Field(description="The formatted JavaScript/TypeScript code")
+    changed: bool = Field(description="Whether the code was modified during formatting")
+
+
 class AnalysisResult(BaseModel):
     """Combined analysis result from both RUFF and VULTURE."""
 
@@ -69,4 +103,13 @@ class AnalysisResult(BaseModel):
     vulture_result: VultureScanResult = Field(
         description="VULTURE dead code detection results"
     )
+    summary: dict[str, int] = Field(description="Summary statistics of the analysis")
+
+
+class ExtendedAnalysisResult(BaseModel):
+    """Extended analysis result including Biome for JS/TS files."""
+
+    ruff_result: RuffCheckResult | None = Field(None, description="RUFF linting results for Python")
+    vulture_result: VultureScanResult | None = Field(None, description="VULTURE results for Python")
+    biome_result: BiomeCheckResult | None = Field(None, description="Biome results for JS/TS")
     summary: dict[str, int] = Field(description="Summary statistics of the analysis")
