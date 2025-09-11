@@ -26,14 +26,14 @@ class TestBiomeAnalyzer:
             pytest.skip("Biome not available for testing")
 
         # Test code with issues
-        js_code = '''
+        js_code = """
 let x = "hello";
 const y = 'world';
 function test(){
     return x + y
 }
 test()
-'''
+"""
 
         result = analyzer.check_code(js_code, ".js")
 
@@ -50,13 +50,15 @@ test()
             pytest.skip("Biome not available for testing")
 
         # Test code that needs formatting
-        js_code = '''const x="hello";let y='world';function test(){return x+y;}'''
+        js_code = """const x="hello";let y='world';function test(){return x+y;}"""
 
         result = analyzer.format_code(js_code, ".js")
 
         assert isinstance(result, BiomeFormatResult)
         assert result.changed is True
-        assert len(result.formatted_code) > len(js_code)  # Should be formatted with proper spacing
+        assert len(result.formatted_code) > len(
+            js_code
+        )  # Should be formatted with proper spacing
 
     def test_biome_check_typescript(self):
         """Test Biome check with TypeScript code."""
@@ -66,7 +68,7 @@ test()
             pytest.skip("Biome not available for testing")
 
         # TypeScript code
-        ts_code = '''
+        ts_code = """
 interface User {
     name: string;
     age: number;
@@ -75,7 +77,7 @@ interface User {
 function greet(user: User): string {
     return `Hello, ${user.name}!`;
 }
-'''
+"""
 
         result = analyzer.check_code(ts_code, ".ts")
 

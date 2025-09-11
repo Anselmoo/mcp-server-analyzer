@@ -109,7 +109,13 @@ class AnalysisResult(BaseModel):
 class ExtendedAnalysisResult(BaseModel):
     """Extended analysis result including Biome for JS/TS files."""
 
-    ruff_result: RuffCheckResult | None = Field(None, description="RUFF linting results for Python")
-    vulture_result: VultureScanResult | None = Field(None, description="VULTURE results for Python")
-    biome_result: BiomeCheckResult | None = Field(None, description="Biome results for JS/TS")
+    ruff_result: RuffCheckResult | None = Field(
+        None, description="RUFF linting results for Python"
+    )
+    vulture_result: VultureScanResult | None = Field(
+        None, description="VULTURE results for Python"
+    )
+    biome_result: BiomeCheckResult | None = Field(
+        None, description="Biome results for JS/TS"
+    )
     summary: dict[str, int] = Field(description="Summary statistics of the analysis")

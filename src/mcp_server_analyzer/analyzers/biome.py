@@ -4,6 +4,7 @@ import json
 import subprocess
 import tempfile
 from pathlib import Path
+from typing import Any
 
 from mcp_server_analyzer.models import BiomeCheckResult, BiomeFormatResult, BiomeIssue
 
@@ -33,11 +34,47 @@ class BiomeAnalyzer:
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
             raise RuntimeError(f"Biome is not available: {e}") from e
 
+    def _parse_span_location(
+        self, location: dict[str, Any], span: list[int]
+    ) -> tuple[int, int, int | None, int | None]:
+        """Parse span-based location from Biome diagnostic.
+
+        Args:
+            location: Location dict from Biome diagnostic
+            span: Span list with start/end offsets
+
+        Returns:
+            Tuple of (start_line, start_col, end_line, end_col)
+        """
+        start_line = 1
+        start_col = 1
+        end_line = None
+        end_col = None
+
+        if span and isinstance(span, list) and len(span) >= SPAN_MIN_LENGTH:
+            source_code = location.get("sourceCode", "")
+            if source_code:
+                lines_before = source_code[: span[0]].count("\n")
+                start_line = lines_before + 1
+                last_newline = source_code.rfind("\n", 0, span[0])
+                start_col = (
+                    span[0] - last_newline if last_newline != -1 else span[0] + 1
+                )
+
+                if len(span) > 1:
+                    lines_before_end = source_code[: span[1]].count("\n")
+                    end_line = lines_before_end + 1
+                    last_newline_end = source_code.rfind("\n", 0, span[1])
+                    end_col = (
+                        span[1] - last_newline_end
+                        if last_newline_end != -1
+                        else span[1] + 1
+                    )
+
+        return start_line, start_col, end_line, end_col
+
     def check_code(
-        self,
-        code: str,
-        file_extension: str = ".js",
-        config_path: str | None = None
+        self, code: str, file_extension: str = ".js", config_path: str | None = None
     ) -> BiomeCheckResult:
         """
         Run Biome linter on the provided code.
@@ -80,39 +117,27 @@ class BiomeAnalyzer:
                         span = location.get("span")
 
                         # Extract line/column info from source code and span
-                        start_line = 1
-                        start_col = 1
-                        end_line = None
-                        end_col = None
-
-                        if span and isinstance(span, list) and len(span) >= SPAN_MIN_LENGTH:
-                            # Calculate line/column from source code using span offsets
-                            source_code = location.get("sourceCode", "")
-                            if source_code:
-                                lines_before = source_code[:span[0]].count('\n')
-                                start_line = lines_before + 1
-                                last_newline = source_code.rfind('\n', 0, span[0])
-                                start_col = span[0] - last_newline if last_newline != -1 else span[0] + 1
-
-                                if len(span) > 1:
-                                    lines_before_end = source_code[:span[1]].count('\n')
-                                    end_line = lines_before_end + 1
-                                    last_newline_end = source_code.rfind('\n', 0, span[1])
-                                    end_col = span[1] - last_newline_end if last_newline_end != -1 else span[1] + 1
+                        start_line, start_col, end_line, end_col = (
+                            self._parse_span_location(location, span)
+                        )
 
                         # Map severity
                         severity_map = {
                             "error": "error",
                             "warning": "warning",
-                            "info": "info"
+                            "info": "info",
                         }
-                        severity = severity_map.get(diagnostic.get("severity", "warning"), "warning")
+                        severity = severity_map.get(
+                            diagnostic.get("severity", "warning"), "warning"
+                        )
 
                         # Extract message content
                         message_content = ""
                         message_parts = diagnostic.get("message", [])
                         if isinstance(message_parts, list):
-                            message_content = "".join(part.get("content", "") for part in message_parts)
+                            message_content = "".join(
+                                part.get("content", "") for part in message_parts
+                            )
                         elif isinstance(message_parts, str):
                             message_content = message_parts
                         else:
@@ -127,7 +152,7 @@ class BiomeAnalyzer:
                             message=message_content,
                             severity=severity,
                             fixable="fixable" in diagnostic.get("tags", []),
-                            file_path=str(temp_file)
+                            file_path=str(temp_file),
                         )
                         issues.append(issue)
 
@@ -149,7 +174,7 @@ class BiomeAnalyzer:
         code: str,
         file_extension: str = ".js",
         output_format: str = "json",
-        config_path: str | None = None
+        config_path: str | None = None,
     ) -> str:
         """
         Run Biome linter with specific output format for CI/CD systems.
@@ -171,10 +196,7 @@ class BiomeAnalyzer:
 
         try:
             # Map output formats
-            reporter_map = {
-                "json": "json",
-                "github": "github"
-            }
+            reporter_map = {"json": "json", "github": "github"}
             reporter = reporter_map.get(output_format, "json")
 
             cmd = ["npx", "biome", "ci", f"--reporter={reporter}", str(temp_file)]
@@ -195,10 +217,7 @@ class BiomeAnalyzer:
             temp_file.unlink()
 
     def format_code(
-        self,
-        code: str,
-        file_extension: str = ".js",
-        config_path: str | None = None
+        self, code: str, file_extension: str = ".js", config_path: str | None = None
     ) -> BiomeFormatResult:
         """
         Format JavaScript/TypeScript code using Biome formatter.
@@ -255,6 +274,8 @@ class BiomeAnalyzer:
             return ".ts"
         if "import React" in code or "jsx" in code.lower():
             return ".jsx"
-        if any(keyword in code for keyword in ["class ", "function ", "const ", "let "]):
+        if any(
+            keyword in code for keyword in ["class ", "function ", "const ", "let "]
+        ):
             return ".js"
         return ".js"  # Default to JavaScript

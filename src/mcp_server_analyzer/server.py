@@ -157,9 +157,7 @@ def vulture_scan(code: str, min_confidence: int = 80) -> dict[str, Any]:
 
 @app.tool(name="biome-check")
 def biome_check(
-    code: str,
-    file_extension: str = ".js",
-    config_path: str | None = None
+    code: str, file_extension: str = ".js", config_path: str | None = None
 ) -> dict[str, Any]:
     """
     Lint JavaScript/TypeScript code using Biome to identify style violations and potential errors.
@@ -197,9 +195,7 @@ def biome_check(
 
 @app.tool(name="biome-format")
 def biome_format(
-    code: str,
-    file_extension: str = ".js",
-    config_path: str | None = None
+    code: str, file_extension: str = ".js", config_path: str | None = None
 ) -> dict[str, Any]:
     """
     Format JavaScript/TypeScript code using Biome's fast formatter.
@@ -236,7 +232,7 @@ def biome_check_ci(
     code: str,
     file_extension: str = ".js",
     output_format: str = "json",
-    config_path: str | None = None
+    config_path: str | None = None,
 ) -> dict[str, Any]:
     """
     Run Biome linter with CI/CD-specific output formats.
@@ -260,7 +256,9 @@ def biome_check_ci(
 
     try:
         assert biome_analyzer is not None  # assure the type checker
-        result = biome_analyzer.check_code_for_ci(code, file_extension, output_format, config_path)
+        result = biome_analyzer.check_code_for_ci(
+            code, file_extension, output_format, config_path
+        )
         return {
             "output": result,
             "format": output_format,
@@ -350,8 +348,7 @@ def analyze_mixed_code(
     python_code: str | None = None,
     js_ts_code: str | None = None,
     file_extension: str = ".js",
-    ruff_config_path: str | None = None,
-    biome_config_path: str | None = None,
+    config_paths: dict[str, str] | None = None,
     min_confidence: int = 80,
 ) -> dict[str, Any]:
     """
@@ -361,14 +358,18 @@ def analyze_mixed_code(
         python_code: Python code to analyze (optional)
         js_ts_code: JavaScript/TypeScript code to analyze (optional)
         file_extension: File extension for JS/TS code (.js, .ts, .jsx, .tsx)
-        ruff_config_path: Optional path to RUFF configuration file
-        biome_config_path: Optional path to Biome configuration file
+        config_paths: Optional dict with 'ruff' and 'biome' config file paths
         min_confidence: Minimum confidence level for VULTURE (default: 80)
 
     Returns:
         Dictionary containing combined analysis results with summary statistics
     """
     try:
+        # Extract config paths
+        config_paths = config_paths or {}
+        ruff_config_path = config_paths.get("ruff")
+        biome_config_path = config_paths.get("biome")
+
         ruff_result = None
         vulture_result = None
         biome_result = None
@@ -390,17 +391,23 @@ def analyze_mixed_code(
         # Analyze JS/TS code if provided
         if js_ts_code and biome_available:
             assert biome_analyzer is not None
-            biome_result = biome_analyzer.check_code(js_ts_code, file_extension, biome_config_path)
+            biome_result = biome_analyzer.check_code(
+                js_ts_code, file_extension, biome_config_path
+            )
 
         # Create summary statistics
         summary = {
             "total_ruff_issues": ruff_result.total_issues if ruff_result else 0,
             "fixable_ruff_issues": ruff_result.fixable_issues if ruff_result else 0,
             "total_unused_items": vulture_result.total_items if vulture_result else 0,
-            "high_confidence_unused": vulture_result.high_confidence_items if vulture_result else 0,
+            "high_confidence_unused": vulture_result.high_confidence_items
+            if vulture_result
+            else 0,
             "total_biome_issues": biome_result.total_issues if biome_result else 0,
             "fixable_biome_issues": biome_result.fixable_issues if biome_result else 0,
-            "code_quality_score": _calculate_extended_quality_score(ruff_result, vulture_result, biome_result),
+            "code_quality_score": _calculate_extended_quality_score(
+                ruff_result, vulture_result, biome_result
+            ),
         }
 
         # Combine results
@@ -467,7 +474,7 @@ def _calculate_quality_score(
 def _calculate_extended_quality_score(
     ruff_result: RuffCheckResult | None,
     vulture_result: VultureScanResult | None,
-    biome_result: BiomeCheckResult | None
+    biome_result: BiomeCheckResult | None,
 ) -> int:
     """
     Calculate a code quality score for mixed Python and JS/TS projects.
@@ -488,8 +495,12 @@ def _calculate_extended_quality_score(
         base_score -= ruff_penalty
 
     if vulture_result:
-        vulture_penalty = min(vulture_result.high_confidence_items * 3, 20)  # Max 20 points
-        total_unused_penalty = min((vulture_result.total_items - vulture_result.high_confidence_items) * 1, 10)  # Max 10 points
+        vulture_penalty = min(
+            vulture_result.high_confidence_items * 3, 20
+        )  # Max 20 points
+        total_unused_penalty = min(
+            (vulture_result.total_items - vulture_result.high_confidence_items) * 1, 10
+        )  # Max 10 points
         base_score -= vulture_penalty + total_unused_penalty
 
     # JS/TS analysis penalties

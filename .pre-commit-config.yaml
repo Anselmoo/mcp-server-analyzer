@@ -45,7 +45,7 @@ repos:
 
 # Configuration for specific tools
 default_language_version:
-  python: python3.11
+  python: python3.12
 
 default_stages: [pre-commit]
 

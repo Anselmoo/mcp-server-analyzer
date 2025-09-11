@@ -7,6 +7,9 @@ from pathlib import Path
 
 from mcp_server_analyzer.models import VultureItem, VultureScanResult
 
+# Constants
+MAX_CONFIDENCE = 100
+
 
 class VultureAnalyzer:
     """Handles VULTURE-based dead code detection."""
@@ -47,8 +50,8 @@ class VultureAnalyzer:
         Returns:
             VultureScanResult containing unused code items
         """
-        if not 0 <= min_confidence <= 100:
-            raise ValueError("min_confidence must be between 0 and 100")
+        if not 0 <= min_confidence <= MAX_CONFIDENCE:
+            raise ValueError(f"min_confidence must be between 0 and {MAX_CONFIDENCE}")
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write(code)
