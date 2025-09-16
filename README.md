@@ -81,7 +81,7 @@ uv run mcp-server-analyzer
 - **🔍 RUFF Analysis**: Comprehensive Python linting with auto-fixes
 - **🧹 Dead Code Detection**: Find unused imports, functions, and variables with VULTURE
 
-### JavaScript/TypeScript Analysis  
+### JavaScript/TypeScript Analysis
 - **⚡ Biome Integration**: Fast linting, formatting, and organizing imports for JS/TS
 - **🔧 Multi-language Support**: Handle .js, .ts, .jsx, .tsx files seamlessly
 - **🎯 Modern Tooling**: Leverage Biome's performance optimizations
@@ -252,7 +252,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - [Astral](https://astral.sh/) for RUFF and uv
-- [Jendrik Seipp](https://github.com/jendrikseipp) for VULTURE  
+- [Jendrik Seipp](https://github.com/jendrikseipp) for VULTURE
 - [Biome Team](https://biomejs.dev/) for the fast JavaScript/TypeScript toolchain
 - [Model Context Protocol](https://modelcontextprotocol.io/) team
 - [FastMCP](https://gofastmcp.com/) framework
