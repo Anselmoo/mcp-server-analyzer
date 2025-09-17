@@ -65,14 +65,21 @@ uvx install mcp-server-analyzer
 # Install with pip
 pip install mcp-server-analyzer
 
-# Install Node.js dependencies for JavaScript/TypeScript support
-npm install @biomejs/biome
+# Install JavaScript/TypeScript tools automatically
+install-js-deps
 
-# Or install from this repository
+# Or install Node.js dependencies manually
+npm install
+
+# Or install from this repository with all dependencies
 git clone https://github.com/anselmoo/mcp-server-analyzer
 cd mcp-server-analyzer
-npm install  # Installs Biome
-pip install -e .  # Installs Python dependencies
+pip install -e .  # Install Python package
+npm install       # Install JS/TS tools (biome, prettier)
+
+# Or use hatch for development
+hatch shell
+hatch run setup-dev  # Installs both Python and Node.js dependencies
 
 # Run with Docker (includes all dependencies)
 docker run ghcr.io/anselmoo/mcp-server-analyzer:latest

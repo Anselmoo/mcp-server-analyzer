@@ -7,13 +7,17 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@biomejs/biome": "^1.9.4"
+    "@biomejs/biome": "^1.9.4",
+    "prettier": "^3.3.3"
   },
   "scripts": {
     "biome:check": "biome check .",
     "biome:format": "biome format .",
     "biome:lint": "biome lint .",
-    "biome:ci": "biome ci ."
+    "biome:ci": "biome ci .",
+    "prettier:check": "prettier --check .",
+    "prettier:format": "prettier --write .",
+    "format:all": "npm run biome:format && npm run prettier:format"
   },
   "keywords": [
     "mcp",
