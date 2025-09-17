@@ -40,6 +40,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Node.js dependencies (install separately with npm):
+# @biomejs/biome>=1.8.0 (defined in package.json)
 dev = [
     "pytest>=8.4.1",
     "pytest-asyncio>=0.21.0",
@@ -51,6 +53,11 @@ dev = [
     "pre-commit>=3.0.0",
 ]
 test = ["pytest>=8.4.1", "pytest-asyncio>=0.21.0", "pytest-cov>=4.0.0"]
+biome = [
+    # Note: @biomejs/biome is a Node.js package and must be installed via npm
+    # Run: npm install @biomejs/biome
+    # This optional dependency group serves as documentation
+]
 
 [project.scripts]
 mcp-server-analyzer = "mcp_server_analyzer.server:main"

@@ -59,13 +59,22 @@ Optionally, you can add it to a file called `.vscode/mcp.json` in your workspace
 ### Universal Installation
 
 ```bash
-# Install with uvx (recommended)
+# Install Python package with uvx (recommended)
 uvx install mcp-server-analyzer
 
 # Install with pip
 pip install mcp-server-analyzer
 
-# Run with Docker
+# Install Node.js dependencies for JavaScript/TypeScript support
+npm install @biomejs/biome
+
+# Or install from this repository
+git clone https://github.com/anselmoo/mcp-server-analyzer
+cd mcp-server-analyzer
+npm install  # Installs Biome
+pip install -e .  # Installs Python dependencies
+
+# Run with Docker (includes all dependencies)
 docker run ghcr.io/anselmoo/mcp-server-analyzer:latest
 
 # Install from source
@@ -77,14 +86,22 @@ uv run mcp-server-analyzer
 
 ## 📋 Features
 
-### Python Analysis
+<details>
+<summary><strong>🐍 Python Analysis</strong></summary>
+
 - **🔍 RUFF Analysis**: Comprehensive Python linting with auto-fixes
 - **🧹 Dead Code Detection**: Find unused imports, functions, and variables with VULTURE
 
-### JavaScript/TypeScript Analysis
+</details>
+
+<details>
+<summary><strong>⚡ JavaScript/TypeScript Analysis</strong></summary>
+
 - **⚡ Biome Integration**: Fast linting, formatting, and organizing imports for JS/TS
 - **🔧 Multi-language Support**: Handle .js, .ts, .jsx, .tsx files seamlessly
 - **🎯 Modern Tooling**: Leverage Biome's performance optimizations
+
+</details>
 
 ### Universal Features
 - **📊 Quality Scoring**: Combined analysis with quality metrics for mixed projects
@@ -108,7 +125,9 @@ Experience modern JS/TS code analysis capabilities: **[🔧 Biome Analysis Previ
 
 ## 🛠️ Available Tools
 
-### Python Tools
+<details>
+<summary><strong>🐍 Python Tools</strong></summary>
+
 | Tool            | Description                      | Use Case                             |
 | --------------- | -------------------------------- | ------------------------------------ |
 | `ruff-check`    | Lint Python code with RUFF       | Style violations, potential errors   |
@@ -117,12 +136,18 @@ Experience modern JS/TS code analysis capabilities: **[🔧 Biome Analysis Previ
 | `vulture-scan`  | Dead code detection              | Unused imports, functions, variables |
 | `analyze-code`  | Combined RUFF + VULTURE analysis | Complete Python code quality assessment |
 
-### JavaScript/TypeScript Tools
+</details>
+
+<details>
+<summary><strong>⚡ JavaScript/TypeScript Tools</strong></summary>
+
 | Tool             | Description                       | Use Case                             |
 | ---------------- | --------------------------------- | ------------------------------------ |
 | `biome-check`    | Lint JS/TS code with Biome       | Style violations, potential errors   |
 | `biome-format`   | Format JS/TS code with Biome     | Code formatting and consistency      |
 | `biome-check-ci` | CI/CD optimized Biome output     | GitHub Actions, GitLab CI            |
+
+</details>
 
 ### Mixed Language Tools
 | Tool                 | Description                           | Use Case                             |
