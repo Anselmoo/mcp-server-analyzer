@@ -138,20 +138,21 @@ class NodeJSInstaller:
             True if successful or user declined, False if error occurred
         """
         if not self.check_nodejs_available():
-            # User-facing installation instructions - print statements are appropriate here
-            print("\n" + "=" * 60)  # noqa: T201
-            print("JavaScript/TypeScript Analysis Setup Required")  # noqa: T201
-            print("=" * 60)  # noqa: T201
-            print(
-                "This package provides advanced code analysis for JavaScript and TypeScript"
-            )  # noqa: T201
-            print("using modern tools like Biome and Prettier, but requires Node.js.")  # noqa: T201
-            print("\nTo enable JavaScript/TypeScript features:")  # noqa: T201
-            print("1. Install Node.js from https://nodejs.org/")  # noqa: T201
-            print("2. Run: npm install")  # noqa: T201
-            print("3. Or use the Docker image which includes all dependencies")  # noqa: T201
-            print("\nPython analysis features will continue to work without Node.js.")  # noqa: T201
-            print("=" * 60 + "\n")  # noqa: T201
+            # Log the setup requirement and provide user-friendly instructions
+            logger.info("JavaScript/TypeScript Analysis Setup Required")
+            logger.info("=" * 60)
+            logger.info(
+                "This package provides advanced code analysis for JavaScript and TypeScript "
+                "using modern tools like Biome and Prettier, but requires Node.js."
+            )
+            logger.info("To enable JavaScript/TypeScript features:")
+            logger.info("1. Install Node.js from https://nodejs.org/")
+            logger.info("2. Run: npm install")
+            logger.info("3. Or use the Docker image which includes all dependencies")
+            logger.info(
+                "Python analysis features will continue to work without Node.js."
+            )
+            logger.info("=" * 60)
             return True
 
         return self.install_dependencies()
