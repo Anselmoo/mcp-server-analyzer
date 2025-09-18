@@ -1,17 +1,20 @@
 """Node.js dependency installer for MCP Server Analyzer."""
 
+import logging
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional
+
+# Configure logger for this module
+logger = logging.getLogger(__name__)
 
 
 class NodeJSInstaller:
     """Handles installation of Node.js dependencies for the MCP server."""
 
-    def __init__(self, package_root: Optional[Path] = None):
+    def __init__(self, package_root: Path | None = None) -> None:
         """Initialize the installer.
-        
+
         Args:
             package_root: Root directory containing package.json
         """
@@ -22,43 +25,39 @@ class NodeJSInstaller:
         """Check if Node.js and npm are available on the system."""
         try:
             subprocess.run(
-                ["node", "--version"], 
-                capture_output=True, 
-                check=True, 
-                timeout=10
+                ["node", "--version"], capture_output=True, check=True, timeout=10
             )
             subprocess.run(
-                ["npm", "--version"], 
-                capture_output=True, 
-                check=True, 
-                timeout=10
+                ["npm", "--version"], capture_output=True, check=True, timeout=10
             )
             return True
-        except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+        except (
+            subprocess.CalledProcessError,
+            FileNotFoundError,
+            subprocess.TimeoutExpired,
+        ):
             return False
 
     def install_dependencies(self, force: bool = False) -> bool:
         """Install Node.js dependencies from package.json.
-        
+
         Args:
             force: Whether to force installation even if already installed
-            
+
         Returns:
             True if installation was successful, False otherwise
         """
         if not self.check_nodejs_available():
-            print(
-                "Warning: Node.js and npm are required for JavaScript/TypeScript analysis features.",
-                file=sys.stderr
+            logger.warning(
+                "Node.js and npm are required for JavaScript/TypeScript analysis features."
             )
-            print(
-                "Please install Node.js from https://nodejs.org/ and run: npm install",
-                file=sys.stderr
+            logger.warning(
+                "Please install Node.js from https://nodejs.org/ and run: npm install"
             )
             return False
 
         if not self.package_json.exists():
-            print(f"Warning: package.json not found at {self.package_json}", file=sys.stderr)
+            logger.warning(f"package.json not found at {self.package_json}")
             return False
 
         try:
@@ -68,29 +67,26 @@ class NodeJSInstaller:
                 # Dependencies likely already installed
                 return True
 
-            print("Installing Node.js dependencies...")
+            logger.info("Installing Node.js dependencies...")
             subprocess.run(
-                ["npm", "install"],
-                cwd=self.package_root,
-                check=True,
-                timeout=120
+                ["npm", "install"], cwd=self.package_root, check=True, timeout=120
             )
-            print("Node.js dependencies installed successfully.")
+            logger.info("Node.js dependencies installed successfully.")
             return True
-            
+
         except subprocess.CalledProcessError as e:
-            print(f"Failed to install Node.js dependencies: {e}", file=sys.stderr)
+            logger.error(f"Failed to install Node.js dependencies: {e}")
             return False
         except subprocess.TimeoutExpired:
-            print("Node.js dependency installation timed out.", file=sys.stderr)
+            logger.error("Node.js dependency installation timed out.")
             return False
 
     def check_tool_available(self, tool: str) -> bool:
         """Check if a specific Node.js tool is available.
-        
+
         Args:
             tool: Name of the tool (e.g., 'biome', 'prettier')
-            
+
         Returns:
             True if tool is available, False otherwise
         """
@@ -100,28 +96,36 @@ class NodeJSInstaller:
                 capture_output=True,
                 check=True,
                 timeout=10,
-                cwd=self.package_root
+                cwd=self.package_root,
             )
             return True
-        except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+        except (
+            subprocess.CalledProcessError,
+            FileNotFoundError,
+            subprocess.TimeoutExpired,
+        ):
             # Also try without specifying cwd in case the tool is globally available
             try:
                 subprocess.run(
                     ["npx", tool, "--version"],
                     capture_output=True,
                     check=True,
-                    timeout=10
+                    timeout=10,
                 )
                 return True
-            except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+            except (
+                subprocess.CalledProcessError,
+                FileNotFoundError,
+                subprocess.TimeoutExpired,
+            ):
                 return False
 
-    def get_missing_tools(self, required_tools: List[str]) -> List[str]:
+    def get_missing_tools(self, required_tools: list[str]) -> list[str]:
         """Get list of missing Node.js tools.
-        
+
         Args:
             required_tools: List of tool names to check
-            
+
         Returns:
             List of missing tool names
         """
@@ -129,22 +133,25 @@ class NodeJSInstaller:
 
     def install_with_instructions(self) -> bool:
         """Install dependencies with user-friendly instructions.
-        
+
         Returns:
             True if successful or user declined, False if error occurred
         """
         if not self.check_nodejs_available():
-            print("\n" + "="*60)
-            print("JavaScript/TypeScript Analysis Setup Required")
-            print("="*60)
-            print("This package provides advanced code analysis for JavaScript and TypeScript")
-            print("using modern tools like Biome and Prettier, but requires Node.js.")
-            print("\nTo enable JavaScript/TypeScript features:")
-            print("1. Install Node.js from https://nodejs.org/")
-            print("2. Run: npm install")
-            print("3. Or use the Docker image which includes all dependencies")
-            print("\nPython analysis features will continue to work without Node.js.")
-            print("="*60 + "\n")
+            # User-facing installation instructions - print statements are appropriate here
+            print("\n" + "=" * 60)  # noqa: T201
+            print("JavaScript/TypeScript Analysis Setup Required")  # noqa: T201
+            print("=" * 60)  # noqa: T201
+            print(
+                "This package provides advanced code analysis for JavaScript and TypeScript"
+            )  # noqa: T201
+            print("using modern tools like Biome and Prettier, but requires Node.js.")  # noqa: T201
+            print("\nTo enable JavaScript/TypeScript features:")  # noqa: T201
+            print("1. Install Node.js from https://nodejs.org/")  # noqa: T201
+            print("2. Run: npm install")  # noqa: T201
+            print("3. Or use the Docker image which includes all dependencies")  # noqa: T201
+            print("\nPython analysis features will continue to work without Node.js.")  # noqa: T201
+            print("=" * 60 + "\n")  # noqa: T201
             return True
 
         return self.install_dependencies()
@@ -152,10 +159,10 @@ class NodeJSInstaller:
 
 def ensure_nodejs_dependencies() -> bool:
     """Ensure Node.js dependencies are installed.
-    
+
     This function can be called during package installation or at runtime
     to ensure all required Node.js tools are available.
-    
+
     Returns:
         True if dependencies are available, False otherwise
     """

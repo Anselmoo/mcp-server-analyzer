@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from mcp_server_analyzer.installer import NodeJSInstaller
 from mcp_server_analyzer.models import BiomeCheckResult, BiomeFormatResult, BiomeIssue
 
 # Constants
@@ -33,8 +34,6 @@ class BiomeAnalyzer:
                 raise RuntimeError("Biome is not properly installed")
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
             # Try to provide helpful installation instructions
-            from mcp_server_analyzer.installer import NodeJSInstaller
-            
             installer = NodeJSInstaller()
             if not installer.check_nodejs_available():
                 raise RuntimeError(
@@ -42,7 +41,7 @@ class BiomeAnalyzer:
                     "Please install Node.js from https://nodejs.org/ and run 'npm install' "
                     "or use 'install-js-deps' command."
                 ) from e
-            elif not installer.check_tool_available("biome"):
+            if not installer.check_tool_available("biome"):
                 # Attempt automatic installation
                 if installer.install_dependencies():
                     # Re-check after installation
@@ -56,13 +55,12 @@ class BiomeAnalyzer:
                         return  # Success
                     except (subprocess.CalledProcessError, FileNotFoundError):
                         pass
-                
+
                 raise RuntimeError(
                     "Biome is not installed. Please run 'npm install' or 'install-js-deps' "
                     "to install JavaScript/TypeScript analysis tools."
                 ) from e
-            else:
-                raise RuntimeError(f"Biome is not available: {e}") from e
+            raise RuntimeError(f"Biome is not available: {e}") from e
 
     def _parse_span_location(
         self, location: dict[str, Any], span: list[int]
