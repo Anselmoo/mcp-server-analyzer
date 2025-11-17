@@ -88,6 +88,27 @@ jobs:
             **/uv.lock
             **/pyproject.toml  # cspell:disable-line
 
+      # Install Node.js and JS dependencies (Biome and Prettier) for JS/TS tests
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-node-${{ matrix.python-version }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-node-${{ matrix.python-version }}-
+            npm-${{ runner.os }}-
+
+      - name: Install JavaScript dependencies
+        run: |
+          # Prefer clean install with lockfile if present, otherwise fallback
+          npm ci --prefer-offline --no-audit --no-fund || npm install --no-audit --no-fund
+
       - name: Cache uv dependencies
         uses: actions/cache@v4
         with:
