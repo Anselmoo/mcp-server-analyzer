@@ -1,4 +1,5 @@
 """MCP Python Analyzer Server - Main FastMCP server implementation."""
+
 import logging
 import sys
 from typing import Any

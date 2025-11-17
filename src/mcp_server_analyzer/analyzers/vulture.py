@@ -1,4 +1,5 @@
 """VULTURE integration for Python dead code detection."""
+
 import re
 import subprocess
 import tempfile

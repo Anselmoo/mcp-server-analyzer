@@ -16,7 +16,9 @@ def _make_installer(tmp_path: Path) -> NodeJSInstaller:
     return NodeJSInstaller(package_root=tmp_path)
 
 
-def test_check_nodejs_available_success(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_check_nodejs_available_success(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """check_nodejs_available should call node and npm once each."""
     calls: list[tuple[str, ...]] = []
 
@@ -31,7 +33,9 @@ def test_check_nodejs_available_success(monkeypatch: pytest.MonkeyPatch, tmp_pat
     assert calls == [("node", "--version"), ("npm", "--version")]
 
 
-def test_check_nodejs_available_failure(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_check_nodejs_available_failure(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """check_nodejs_available should return False when subprocess.run raises."""
 
     def fake_run(*_: object, **__: object) -> None:
@@ -43,17 +47,21 @@ def test_check_nodejs_available_failure(monkeypatch: pytest.MonkeyPatch, tmp_pat
     assert installer.check_nodejs_available() is False
 
 
-def test_install_dependencies_missing_node(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_install_dependencies_missing_node(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """install_dependencies should abort if Node.js is unavailable."""
-    monkeypatch.setattr(NodeJSInstaller, "check_nodejs_available", lambda self: False)
+    monkeypatch.setattr(NodeJSInstaller, "check_nodejs_available", lambda _: False)
 
     installer = _make_installer(tmp_path)
     assert installer.install_dependencies() is False
 
 
-def test_install_dependencies_missing_package_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_install_dependencies_missing_package_json(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """install_dependencies should warn and return False when package.json is absent."""
-    monkeypatch.setattr(NodeJSInstaller, "check_nodejs_available", lambda self: True)
+    monkeypatch.setattr(NodeJSInstaller, "check_nodejs_available", lambda _: True)
 
     installer = _make_installer(tmp_path)
     assert installer.install_dependencies() is False
@@ -63,7 +71,7 @@ def test_install_dependencies_skips_when_node_modules_present(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """install_dependencies should skip reinstall when node_modules already populated."""
-    monkeypatch.setattr(NodeJSInstaller, "check_nodejs_available", lambda self: True)
+    monkeypatch.setattr(NodeJSInstaller, "check_nodejs_available", lambda _: True)
 
     package_json = tmp_path / "package.json"
     package_json.write_text("{}")
@@ -73,7 +81,9 @@ def test_install_dependencies_skips_when_node_modules_present(
     (node_modules / "existing").mkdir()
 
     def fake_run(*_: object, **__: object) -> None:
-        raise AssertionError("npm install should not be executed when node_modules is populated")
+        raise AssertionError(
+            "npm install should not be executed when node_modules is populated"
+        )
 
     monkeypatch.setattr(subprocess, "run", fake_run)
 
@@ -85,7 +95,7 @@ def test_install_dependencies_runs_npm_install(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """install_dependencies should invoke npm install when dependencies are missing."""
-    monkeypatch.setattr(NodeJSInstaller, "check_nodejs_available", lambda self: True)
+    monkeypatch.setattr(NodeJSInstaller, "check_nodejs_available", lambda _: True)
 
     package_json = tmp_path / "package.json"
     package_json.write_text("{}")
@@ -137,5 +147,3 @@ def test_check_tool_available_failure(
 
     installer = _make_installer(tmp_path)
     assert installer.check_tool_available("biome") is False
-
-

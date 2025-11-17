@@ -1,8 +1,9 @@
 """Comprehensive tests to improve code coverage for server, installer, and biome modules."""
 
+import contextlib
 import subprocess
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -19,14 +20,13 @@ class TestServerToolsErrorHandling:
         from mcp_server_analyzer.server import ruff_analyzer
 
         # Test that the analyzer can handle error scenarios
-        with patch.object(
-            ruff_analyzer, "check_code", side_effect=Exception("Test error")
+        with (
+            patch.object(
+                ruff_analyzer, "check_code", side_effect=Exception("Test error")
+            ),
+            pytest.raises(Exception, match="Test error"),
         ):
-            # The tool will catch the exception and return error dict
-            try:
-                ruff_analyzer.check_code("test code")
-            except Exception as e:
-                assert "Test error" in str(e)
+            ruff_analyzer.check_code("test code")
 
     def test_vulture_analyzer_unavailable_path(self):
         """Test vulture unavailability path in server."""
@@ -83,9 +83,7 @@ class TestInstallerComprehensive:
         """Test Node.js detection with timeout."""
         installer = NodeJSInstaller()
 
-        with patch(
-            "subprocess.run", side_effect=subprocess.TimeoutExpired("node", 10)
-        ):
+        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("node", 10)):
             assert installer.check_nodejs_available() is False
 
     def test_check_nodejs_process_error(self):
@@ -110,59 +108,69 @@ class TestInstallerComprehensive:
         """Test install_dependencies when package.json doesn't exist."""
         installer = NodeJSInstaller()
 
-        with patch.object(installer, "check_nodejs_available", return_value=True):
-            with patch("pathlib.Path.exists", return_value=False):
-                result = installer.install_dependencies()
-                assert result is False
+        with (
+            patch.object(installer, "check_nodejs_available", return_value=True),
+            patch("pathlib.Path.exists", return_value=False),
+        ):
+            result = installer.install_dependencies()
+            assert result is False
 
     def test_install_dependencies_already_installed(self):
         """Test install_dependencies when dependencies are already installed."""
         installer = NodeJSInstaller()
 
-        with patch.object(installer, "check_nodejs_available", return_value=True):
-            with patch("pathlib.Path.exists", return_value=True):
-                with patch("pathlib.Path.iterdir", return_value=["some_module"]):
-                    result = installer.install_dependencies(force=False)
-                    # Should return True if dependencies exist
-                    assert result is True
+        with (
+            patch.object(installer, "check_nodejs_available", return_value=True),
+            patch("pathlib.Path.exists", return_value=True),
+            patch("pathlib.Path.iterdir", return_value=["some_module"]),
+        ):
+            result = installer.install_dependencies(force=False)
+            # Should return True if dependencies exist
+            assert result is True
 
     def test_install_dependencies_force_reinstall(self):
         """Test install_dependencies with force=True."""
         installer = NodeJSInstaller()
 
-        with patch.object(installer, "check_nodejs_available", return_value=True):
-            with patch("pathlib.Path.exists", return_value=True):
-                with patch("subprocess.run") as mock_run:
-                    mock_run.return_value = Mock(returncode=0)
-                    result = installer.install_dependencies(force=True)
-                    assert result is True
-                    mock_run.assert_called()
+        with (
+            patch.object(installer, "check_nodejs_available", return_value=True),
+            patch("pathlib.Path.exists", return_value=True),
+            patch("subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = Mock(returncode=0)
+            result = installer.install_dependencies(force=True)
+            assert result is True
+            mock_run.assert_called()
 
     def test_install_dependencies_process_error(self):
         """Test install_dependencies with subprocess error."""
         installer = NodeJSInstaller()
 
-        with patch.object(installer, "check_nodejs_available", return_value=True):
-            with patch("pathlib.Path.exists", return_value=True):
-                with patch(
-                    "subprocess.run",
-                    side_effect=subprocess.CalledProcessError(1, "npm"),
-                ):
-                    result = installer.install_dependencies(force=True)
-                    assert result is False
+        with (
+            patch.object(installer, "check_nodejs_available", return_value=True),
+            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "subprocess.run",
+                side_effect=subprocess.CalledProcessError(1, "npm"),
+            ),
+        ):
+            result = installer.install_dependencies(force=True)
+            assert result is False
 
     def test_install_dependencies_timeout(self):
         """Test install_dependencies with timeout."""
         installer = NodeJSInstaller()
 
-        with patch.object(installer, "check_nodejs_available", return_value=True):
-            with patch("pathlib.Path.exists", return_value=True):
-                with patch(
-                    "subprocess.run",
-                    side_effect=subprocess.TimeoutExpired("npm", 120),
-                ):
-                    result = installer.install_dependencies(force=True)
-                    assert result is False
+        with (
+            patch.object(installer, "check_nodejs_available", return_value=True),
+            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "subprocess.run",
+                side_effect=subprocess.TimeoutExpired("npm", 120),
+            ),
+        ):
+            result = installer.install_dependencies(force=True)
+            assert result is False
 
     def test_check_tool_available_with_cwd(self):
         """Test check_tool_available with cwd."""
@@ -234,10 +242,12 @@ class TestInstallerComprehensive:
         """Test install_with_instructions when Node.js is available."""
         installer = NodeJSInstaller()
 
-        with patch.object(installer, "check_nodejs_available", return_value=True):
-            with patch.object(installer, "install_dependencies", return_value=True):
-                result = installer.install_with_instructions()
-                assert result is True
+        with (
+            patch.object(installer, "check_nodejs_available", return_value=True),
+            patch.object(installer, "install_dependencies", return_value=True),
+        ):
+            result = installer.install_with_instructions()
+            assert result is True
 
     def test_ensure_nodejs_dependencies(self):
         """Test ensure_nodejs_dependencies function."""
@@ -253,18 +263,22 @@ class TestBiomeAnalyzerComprehensive:
 
     def test_biome_init_nodejs_not_available(self):
         """Test BiomeAnalyzer initialization when Node.js is not available."""
-        with patch("subprocess.run", side_effect=FileNotFoundError()):
-            with pytest.raises(RuntimeError, match="Node.js is required"):
-                BiomeAnalyzer()
+        with (
+            patch("subprocess.run", side_effect=FileNotFoundError()),
+            pytest.raises(RuntimeError, match=r"Node\.js is required"),
+        ):
+            BiomeAnalyzer()
 
     def test_biome_init_timeout(self):
         """Test BiomeAnalyzer initialization with timeout."""
-        with patch(
-            "subprocess.run",
-            side_effect=subprocess.TimeoutExpired("npx", 10),
+        with (
+            patch(
+                "subprocess.run",
+                side_effect=subprocess.TimeoutExpired("npx", 10),
+            ),
+            pytest.raises(RuntimeError),
         ):
-            with pytest.raises(RuntimeError):
-                BiomeAnalyzer()
+            BiomeAnalyzer()
 
     def test_check_code_timeout_handling(self):
         """Test check_code with timeout."""
@@ -273,13 +287,13 @@ class TestBiomeAnalyzerComprehensive:
         except RuntimeError:
             pytest.skip("Biome not available")
 
-        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("npx", 30)):
+        with (
+            patch("subprocess.run", side_effect=subprocess.TimeoutExpired("npx", 30)),
+            contextlib.suppress(subprocess.TimeoutExpired, RuntimeError),
+        ):
             # Should raise exception or handle timeout
-            try:
-                analyzer.check_code("const x = 1;", ".js")
-                # If it doesn't raise, that's also valid (graceful handling)
-            except (subprocess.TimeoutExpired, RuntimeError):
-                pass  # Expected
+            analyzer.check_code("const x = 1;", ".js")
+            # If it doesn't raise, that's also valid (graceful handling)
 
     def test_format_code_error_handling(self):
         """Test format_code error handling."""

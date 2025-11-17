@@ -230,9 +230,7 @@ class TestServerTools:
         assert summary["total_biome_issues"] == 3
         assert result["biome_result"]["files_checked"] == 1
 
-    def test_analyze_mixed_code_handles_missing_js_tools(
-        self, monkeypatch
-    ) -> None:
+    def test_analyze_mixed_code_handles_missing_js_tools(self, monkeypatch) -> None:
         """analyze_mixed_code should tolerate missing Biome support."""
 
         ruff_result = RuffCheckResult(issues=[], total_issues=0, fixable_issues=0)

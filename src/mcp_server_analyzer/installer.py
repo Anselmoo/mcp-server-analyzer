@@ -1,4 +1,5 @@
 """Node.js dependency installer for MCP Server Analyzer."""
+
 import logging
 import subprocess
 import sys
