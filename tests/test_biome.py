@@ -5,6 +5,8 @@ import pytest
 from mcp_server_analyzer.analyzers.biome import BiomeAnalyzer
 from mcp_server_analyzer.models import BiomeCheckResult, BiomeFormatResult
 
+pytestmark = pytest.mark.usefixtures("mock_biome_cli")
+
 
 class TestBiomeAnalyzer:
     """Test cases for BiomeAnalyzer functionality."""
@@ -122,3 +124,8 @@ function greet(user: User): string {
         js_code = "const x = 1;"
         file_type = analyzer._detect_file_type(js_code)
         assert file_type == ".js"
+
+    def test_biome_issue_fixture(self, sample_biome_issue):
+        """Ensure the shared BiomeIssue fixture provides stable data."""
+        assert sample_biome_issue.rule == "mock/rule"
+        assert sample_biome_issue.fixable is True

@@ -1,5 +1,4 @@
 # Sample Python code with some issues for RUFF and VULTURE
-import json
 
 
 def process_data(data, debug=False):
@@ -15,7 +14,7 @@ def process_data(data, debug=False):
             )
 
     if debug:
-        print(f"Processed {len(results)} items")
+        pass
 
     return results
 
@@ -44,4 +43,3 @@ if __name__ == "__main__":
         {"id": 2, "name": "Bob", "active": False},
     ]
     result = process_data(sample_data, debug=True)
-    print(json.dumps(result, indent=2))

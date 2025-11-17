@@ -32,7 +32,11 @@ class BiomeAnalyzer:
             )
             if result.returncode != 0:
                 raise RuntimeError("Biome is not properly installed")
-        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        except (
+            subprocess.CalledProcessError,
+            FileNotFoundError,
+            subprocess.TimeoutExpired,
+        ) as e:
             # Try to provide helpful installation instructions
             installer = NodeJSInstaller()
             if not installer.check_nodejs_available():
@@ -53,7 +57,11 @@ class BiomeAnalyzer:
                             timeout=10,
                         )
                         return  # Success
-                    except (subprocess.CalledProcessError, FileNotFoundError):
+                    except (
+                        subprocess.CalledProcessError,
+                        FileNotFoundError,
+                        subprocess.TimeoutExpired,
+                    ):
                         pass
 
                 raise RuntimeError(

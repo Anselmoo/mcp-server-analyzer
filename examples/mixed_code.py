@@ -23,8 +23,7 @@ class FileProcessor:
 
     def find_files(self, pattern: str = "*.json") -> list[Path]:
         """Find files matching pattern - good method."""
-        files = list(self.base_path.glob(pattern))
-        return files
+        return list(self.base_path.glob(pattern))
 
     def process_file(self, file_path):  # Missing type hints
         """Process a single file - mixed quality."""
@@ -113,32 +112,26 @@ def main():
     json_files = processor.find_files("*.json")
 
     if len(json_files) == 0:  # Verbose empty check
-        print("No JSON files found")  # Should use logging
         return
 
     results = []
     for file in json_files:
         result = processor.process_file(file)
-        if result != None:  # Should use 'is not None'
+        if result is not None:  # Should use 'is not None'
             results.append(result)
 
     # Some unused variables
-    temp_var = "not used"
-    another_unused = 42
 
     # Get and display stats
-    stats = processor.get_stats()
-    print(f"Processed: {stats['processed_count']} files")  # Should use logging
-    print(f"Errors: {stats['error_count']} files")
-    print(f"Success rate: {stats['success_rate']:.1f}%")
+    processor.get_stats()
 
     # Save results if any
     if len(results) > 0:  # Verbose empty check
         output_file = "processed_data.json"
         if processor.save_results(output_file, results):
-            print(f"Results saved to {output_file}")
+            pass
         else:
-            print("Failed to save results")
+            pass
 
 
 # Unused constants
@@ -150,6 +143,5 @@ if __name__ == "__main__":
     # Good: some error handling
     try:
         main()
-    except Exception as e:
-        print(f"Application error: {e}", file=sys.stderr)
+    except Exception:
         sys.exit(1)

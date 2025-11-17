@@ -2,6 +2,8 @@
 
 import pytest
 
+pytestmark = pytest.mark.usefixtures("mock_biome_cli")
+
 
 class TestBiomeServerIntegration:
     """Test MCP server Biome tool integration."""

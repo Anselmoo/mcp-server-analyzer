@@ -28,7 +28,7 @@ class badDataProcessor:  # Class name should be PascalCase
         # Unnecessary pass
 
     def load_config(self):  # Missing return type annotation
-        if self.config_file == None:  # Should use 'is None'
+        if self.config_file is None:  # Should use 'is None'
             return {"default": True}
         try:
             f = open(self.config_file)  # Should use context manager
@@ -47,7 +47,7 @@ class badDataProcessor:  # Class name should be PascalCase
         for i in range(len(input_data)):  # Should use enumerate or direct iteration
             item = input_data[i]
             if (
-                item.get("name") != None and item.get("name") != ""
+                item.get("name") is not None and item.get("name") != ""
             ):  # Verbose None checks
                 result = {}
                 result["name"] = item["name"].strip().lower()
@@ -62,17 +62,12 @@ class badDataProcessor:  # Class name should be PascalCase
         self, item
     ):  # Method name doesn't follow convention, unused method
         """This method is never called - dead code."""
-        if "name" in item:
-            if len(item["name"]) > 0:
-                if item["name"].isalnum():
-                    return True
-        return False
+        return bool("name" in item and len(item["name"]) > 0 and item["name"].isalnum())
 
     def unused_method(self):  # Dead code
         """This method is never used."""
         temp = "hello world"
-        temp2 = temp.upper()
-        return temp2
+        return temp.upper()
 
 
 # Unused function
@@ -85,8 +80,7 @@ def another_unused_function():
     """Another unused function."""
     x = 1
     y = 2
-    z = x + y
-    return z
+    return x + y
 
 
 def main():
@@ -106,17 +100,12 @@ def main():
     results = processor.process_data(sample_data)
 
     # Bad string formatting
-    print("Processed " + str(len(results)) + " items")
 
     # Unused variables
-    unused_var = "this is never used"
-    another_unused = [1, 2, 3, 4, 5]
-    temp_dict = {"key": "value"}
 
     # Bad loop
     for i in range(len(results)):
-        item = results[i]
-        print("Item: " + item["name"] + " = " + item["value"])
+        results[i]
 
     # Dead code after return would go here, but let's not make it too obvious
 

@@ -123,6 +123,9 @@ indent-style = "space"
 
 [tool.ruff.lint.per-file-ignores]
 "test_*.py" = ["PLR2004", "PLC0415"]
+"conftest.py" = ["PLR2004", "C901"]
+"bad_code.py" = ["N801", "SIM115", "ARG001", "PLW0602", "ARG001", "E722"]
+"mixed_code.py" = ["E721", "E722"]
 
 [tool.mypy]
 python_version = "3.10"

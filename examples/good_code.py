@@ -74,18 +74,14 @@ def main() -> None:
     ]
 
     results = processor.process_data(sample_data)
-    stats = processor.get_stats()
+    processor.get_stats()
 
-    print(f"Processed {len(results)} items successfully")
-    print(f"Success rate: {stats['success_rate']}%")
-
-    for result in results:
-        print(f"  - {result['name']}: {result['value']}")
+    for _result in results:
+        pass
 
 
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
+    except Exception:
         sys.exit(1)

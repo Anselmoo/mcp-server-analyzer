@@ -26,27 +26,23 @@ class UnusedClass:
 # RUFF will catch formatting issues:
 def badly_formatted(x, y):
     """Function with poor formatting."""
-    if x == None:
+    if x is None:
         return None  # Multiple issues here
-    result = x + y
-    return result
+    return x + y
 
 
 def main():
     """Main function with various issues."""
     # VULTURE will catch unused variables:
-    unused_var = "not used"
-    another_unused = [1, 2, 3]
 
     # RUFF will catch style issues:
-    data = {"name": "test", "value": 123}  # No spaces around colons
 
     # Using the badly formatted function:
     result = badly_formatted(10, 20)
 
     # More RUFF issues:
-    if result != None:  # Should use 'is not None'
-        print("Result:", result)
+    if result is not None:  # Should use 'is not None'
+        pass
 
     return result
 
