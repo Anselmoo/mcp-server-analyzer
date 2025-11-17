@@ -125,6 +125,35 @@ function greet(user: User): string {
         file_type = analyzer._detect_file_type(js_code)
         assert file_type == ".js"
 
+    def test_parse_span_location_with_valid_span(self):
+        """Parse span data into accurate line/column positions."""
+        try:
+            analyzer = BiomeAnalyzer()
+        except RuntimeError:
+            pytest.skip("Biome not available for testing")
+
+        source_code = "ab\ncd\nef"
+        start_line, start_col, end_line, end_col = analyzer._parse_span_location(
+            {"sourceCode": source_code},
+            [3, 7],
+        )
+
+        assert (start_line, start_col, end_line, end_col) == (2, 1, 3, 2)
+
+    def test_parse_span_location_with_missing_span(self):
+        """Fallback to defaults when span data is unavailable."""
+        try:
+            analyzer = BiomeAnalyzer()
+        except RuntimeError:
+            pytest.skip("Biome not available for testing")
+
+        start_line, start_col, end_line, end_col = analyzer._parse_span_location(
+            {"sourceCode": "function demo() {}"},
+            [],
+        )
+
+        assert (start_line, start_col, end_line, end_col) == (1, 1, None, None)
+
     def test_biome_issue_fixture(self, sample_biome_issue):
         """Ensure the shared BiomeIssue fixture provides stable data."""
         assert sample_biome_issue.rule == "mock/rule"

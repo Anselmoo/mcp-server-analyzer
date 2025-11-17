@@ -1,5 +1,4 @@
 """Biome integration for JavaScript/TypeScript code linting and formatting."""
-
 import json
 import subprocess
 import tempfile
