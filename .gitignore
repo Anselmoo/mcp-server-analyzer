@@ -199,7 +199,8 @@ yarn-debug.log*
 yarn-error.log*
 .npm
 .yarn/
-package-lock.json
+# Note: package-lock.json is tracked for dependency caching in CI/CD
+# yarn.lock would be tracked if using yarn instead of npm
 yarn.lock
 
 # PyPI configuration file
