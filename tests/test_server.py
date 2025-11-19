@@ -101,7 +101,7 @@ class TestServerTools:
             server, "ruff_analyzer", SimpleNamespace(check_code=fake_check)
         )
 
-        result = server.ruff_check("print('hi')", config_path="pyproject.toml")
+        result = server.ruff_check.fn("print('hi')", config_path="pyproject.toml")
 
         assert result["total_issues"] == 1
         assert result["fixable_issues"] == 0
@@ -116,7 +116,7 @@ class TestServerTools:
             server, "ruff_analyzer", SimpleNamespace(check_code=fake_check)
         )
 
-        result = server.ruff_check("raise ValueError()")
+        result = server.ruff_check.fn("raise ValueError()")
 
         assert result["error"].startswith("RUFF check failed")
         assert result["total_issues"] == 0
@@ -126,7 +126,7 @@ class TestServerTools:
 
         monkeypatch.setattr(server, "vulture_available", False)
 
-        result = server.vulture_scan("print('hi')")
+        result = server.vulture_scan.fn("print('hi')")
 
         assert result["error"].startswith("VULTURE is not available")
         assert result["total_items"] == 0
@@ -148,7 +148,7 @@ class TestServerTools:
             server, "vulture_analyzer", SimpleNamespace(scan_code=fake_scan)
         )
 
-        result = server.vulture_scan("print('hi')", min_confidence=70)
+        result = server.vulture_scan.fn("print('hi')", min_confidence=70)
 
         assert result["total_items"] == 2
         assert result["high_confidence_items"] == 1
@@ -158,7 +158,7 @@ class TestServerTools:
 
         monkeypatch.setattr(server, "biome_available", False)
 
-        result = server.biome_check("console.log('hi');")
+        result = server.biome_check.fn("console.log('hi');")
 
         assert result["error"].startswith("Biome is not available")
         assert result["total_issues"] == 0
@@ -181,7 +181,7 @@ class TestServerTools:
             SimpleNamespace(scan_code=lambda *_: vulture_result),
         )
 
-        result = server.analyze_code("print('hi')", ruff_config_path="cfg.toml")
+        result = server.analyze_code.fn("print('hi')", ruff_config_path="cfg.toml")
 
         summary = result["summary"]
         assert summary["total_ruff_issues"] == 2
@@ -216,7 +216,7 @@ class TestServerTools:
             SimpleNamespace(check_code=lambda *_: biome_result),
         )
 
-        result = server.analyze_mixed_code(
+        result = server.analyze_mixed_code.fn(
             python_code="print('hi')",
             js_ts_code="console.log('hi');",
             file_extension=".ts",
@@ -249,7 +249,7 @@ class TestServerTools:
         )
         monkeypatch.setattr(server, "biome_available", False)
 
-        result = server.analyze_mixed_code(python_code="print('hi')", js_ts_code="foo")
+        result = server.analyze_mixed_code.fn(python_code="print('hi')", js_ts_code="foo")
 
         summary = result["summary"]
         assert summary["total_biome_issues"] == 0
