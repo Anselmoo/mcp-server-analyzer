@@ -6,6 +6,8 @@
 [![Docker](https://img.shields.io/badge/docker-available-blue.svg)](https://github.com/anselmoo/mcp-server-analyzer/pkgs/container/mcp-server-analyzer)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code Coverage](https://codecov.io/gh/anselmoo/mcp-server-analyzer/branch/main/graph/badge.svg)](https://codecov.io/gh/anselmoo/mcp-server-analyzer)
+[![AgentSeal MCP](https://agentseal.org/api/v1/mcp/mcp-server-analyzer/badge)](https://agentseal.org/mcp/mcp-server-analyzer)
+
 
 A powerful [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that provides comprehensive Python code analysis using [**RUFF**](https://docs.astral.sh/ruff/) for linting and [**VULTURE**](https://github.com/jendrikseipp/vulture) for dead code detection. Perfect for AI assistants, IDEs, and automated code review workflows.
 
