@@ -38,7 +38,6 @@ dist/
 .pytest_cache/
 .coverage
 htmlcov/
-.mypy_cache/
 
 # Documentation
 docs/

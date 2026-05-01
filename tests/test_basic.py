@@ -4,12 +4,15 @@
 def test_basic_import():
     """Test that we can import the main modules."""
     from mcp_server_analyzer.analyzers.ruff import RuffAnalyzer
+    from mcp_server_analyzer.analyzers.ty import TyAnalyzer
     from mcp_server_analyzer.analyzers.vulture import VultureAnalyzer
-    from mcp_server_analyzer.models import RuffCheckResult
+    from mcp_server_analyzer.models import RuffCheckResult, TyCheckResult
 
     assert RuffAnalyzer is not None
+    assert TyAnalyzer is not None
     assert VultureAnalyzer is not None
     assert RuffCheckResult is not None
+    assert TyCheckResult is not None
 
 
 def test_ruff_analyzer_basic():
@@ -36,3 +39,16 @@ def test_vulture_analyzer_basic():
     assert hasattr(result, "total_items")
     assert hasattr(result, "unused_items")
     assert result.total_items >= 0
+
+
+def test_ty_analyzer_basic():
+    """Test basic ty analyzer functionality."""
+    from mcp_server_analyzer.analyzers.ty import TyAnalyzer
+
+    analyzer = TyAnalyzer()
+    test_code = "def main() -> int:\n    return 1\n"
+    result = analyzer.check_code(test_code)
+
+    assert hasattr(result, "total_diagnostics")
+    assert hasattr(result, "diagnostics")
+    assert result.total_diagnostics == 0

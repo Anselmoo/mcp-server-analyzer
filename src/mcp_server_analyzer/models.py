@@ -35,6 +35,27 @@ class RuffFormatResult(BaseModel):
     changed: bool = Field(description="Whether the code was modified during formatting")
 
 
+class TyDiagnostic(BaseModel):
+    """Represents a ty type-checking diagnostic."""
+
+    line: int = Field(description="Line number where the diagnostic occurs")
+    column: int = Field(description="Column number where the diagnostic occurs")
+    rule: str = Field(description="ty diagnostic rule identifier")
+    message: str = Field(description="Human-readable description of the diagnostic")
+    severity: str = Field(description="Diagnostic severity level")
+
+
+class TyCheckResult(BaseModel):
+    """Result of a ty type-check operation."""
+
+    diagnostics: list[TyDiagnostic] = Field(
+        description="List of type diagnostics found"
+    )
+    total_diagnostics: int = Field(description="Total number of diagnostics")
+    error_count: int = Field(description="Number of error diagnostics")
+    warning_count: int = Field(description="Number of warning diagnostics")
+
+
 class VultureItem(BaseModel):
     """Represents an unused code item found by VULTURE."""
 
@@ -63,9 +84,10 @@ class VultureScanResult(BaseModel):
 
 
 class AnalysisResult(BaseModel):
-    """Combined analysis result from both RUFF and VULTURE."""
+    """Combined analysis result from the available analyzers."""
 
     ruff_result: RuffCheckResult = Field(description="RUFF linting results")
+    ty_result: TyCheckResult = Field(description="ty type-checking results")
     vulture_result: VultureScanResult = Field(
         description="VULTURE dead code detection results"
     )

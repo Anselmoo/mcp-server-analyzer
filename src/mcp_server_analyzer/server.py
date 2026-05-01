@@ -6,10 +6,11 @@ from typing import Any
 
 from fastmcp import FastMCP
 
-from mcp_server_analyzer.analyzers import RuffAnalyzer, VultureAnalyzer
+from mcp_server_analyzer.analyzers import RuffAnalyzer, TyAnalyzer, VultureAnalyzer
 from mcp_server_analyzer.models import (
     AnalysisResult,
     RuffCheckResult,
+    TyCheckResult,
     VultureScanResult,
 )
 
@@ -22,6 +23,15 @@ app: FastMCP[Any] = FastMCP("Python Analyzer")
 
 # Initialize analyzers
 ruff_analyzer = RuffAnalyzer()
+
+# Try to initialize ty analyzer, but handle gracefully if it fails
+try:
+    ty_analyzer: TyAnalyzer | None = TyAnalyzer()
+    ty_available = True
+except RuntimeError as e:
+    logger.warning("ty not available: %s", e)
+    ty_analyzer = None
+    ty_available = False
 
 # Try to initialize VULTURE analyzer, but handle gracefully if it fails
 try:
@@ -111,6 +121,41 @@ def ruff_check_ci(
         }
 
 
+@app.tool(name="ty-check")
+def ty_check(code: str, project_path: str | None = None) -> dict[str, Any]:
+    """
+    Type-check Python code using ty.
+
+    Args:
+        code: Python code to analyze
+        project_path: Optional project directory used for ty config and import resolution
+
+    Returns:
+        Dictionary containing type diagnostics and counts
+    """
+    if not ty_available:
+        return {
+            "error": "ty is not available - please install the ty package",
+            "diagnostics": [],
+            "total_diagnostics": 0,
+            "error_count": 0,
+            "warning_count": 0,
+        }
+
+    try:
+        assert ty_analyzer is not None  # assure the type checker
+        result = ty_analyzer.check_code(code, project_path)
+        return result.model_dump()
+    except Exception as e:
+        return {
+            "error": f"ty check failed: {e!s}",
+            "diagnostics": [],
+            "total_diagnostics": 0,
+            "error_count": 0,
+            "warning_count": 0,
+        }
+
+
 @app.tool(name="vulture-scan")
 def vulture_scan(code: str, min_confidence: int = 80) -> dict[str, Any]:
     """
@@ -149,14 +194,16 @@ def analyze_code(
     code: str,
     ruff_config_path: str | None = None,
     min_confidence: int = 80,
+    project_path: str | None = None,
 ) -> dict[str, Any]:
     """
-    Comprehensive analysis combining RUFF linting and VULTURE dead code detection.
+    Comprehensive analysis combining Ruff linting, ty type checking, and Vulture dead code detection.
 
     Args:
         code: Python code to analyze
         ruff_config_path: Optional path to RUFF configuration file
         min_confidence: Minimum confidence level for VULTURE (default: 80)
+        project_path: Optional project directory used by ty for config and import resolution
 
     Returns:
         Dictionary containing combined analysis results with summary statistics
@@ -164,6 +211,18 @@ def analyze_code(
     try:
         # Run RUFF analysis
         ruff_result = ruff_analyzer.check_code(code, ruff_config_path)
+
+        # Run ty analysis if available
+        if ty_available:
+            assert ty_analyzer is not None  # assure the type checker
+            ty_result = ty_analyzer.check_code(code, project_path)
+        else:
+            ty_result = TyCheckResult(
+                diagnostics=[],
+                total_diagnostics=0,
+                error_count=0,
+                warning_count=0,
+            )
 
         # Run VULTURE analysis if available
         if vulture_available:
@@ -181,14 +240,20 @@ def analyze_code(
         summary = {
             "total_ruff_issues": ruff_result.total_issues,
             "fixable_ruff_issues": ruff_result.fixable_issues,
+            "total_ty_diagnostics": ty_result.total_diagnostics,
+            "ty_error_count": ty_result.error_count,
+            "ty_warning_count": ty_result.warning_count,
             "total_unused_items": vulture_result.total_items,
             "high_confidence_unused": vulture_result.high_confidence_items,
-            "code_quality_score": _calculate_quality_score(ruff_result, vulture_result),
+            "code_quality_score": _calculate_quality_score(
+                ruff_result, ty_result, vulture_result
+            ),
         }
 
         # Combine results
         analysis = AnalysisResult(
             ruff_result=ruff_result,
+            ty_result=ty_result,
             vulture_result=vulture_result,
             summary=summary,
         )
@@ -199,6 +264,12 @@ def analyze_code(
         return {
             "error": f"Code analysis failed: {e!s}",
             "ruff_result": {"issues": [], "total_issues": 0, "fixable_issues": 0},
+            "ty_result": {
+                "diagnostics": [],
+                "total_diagnostics": 0,
+                "error_count": 0,
+                "warning_count": 0,
+            },
             "vulture_result": {
                 "unused_items": [],
                 "total_items": 0,
@@ -207,6 +278,9 @@ def analyze_code(
             "summary": {
                 "total_ruff_issues": 0,
                 "fixable_ruff_issues": 0,
+                "total_ty_diagnostics": 0,
+                "ty_error_count": 0,
+                "ty_warning_count": 0,
                 "total_unused_items": 0,
                 "high_confidence_unused": 0,
                 "code_quality_score": 0,
@@ -215,13 +289,16 @@ def analyze_code(
 
 
 def _calculate_quality_score(
-    ruff_result: RuffCheckResult, vulture_result: VultureScanResult
+    ruff_result: RuffCheckResult,
+    ty_result: TyCheckResult,
+    vulture_result: VultureScanResult,
 ) -> int:
     """
     Calculate a simple code quality score based on analysis results.
 
     Args:
         ruff_result: RUFF linting results
+        ty_result: ty type-checking results
         vulture_result: VULTURE scanning results
 
     Returns:
@@ -233,6 +310,9 @@ def _calculate_quality_score(
     # Deduct points for RUFF issues
     ruff_penalty = min(ruff_result.total_issues * 2, 50)  # Max 50 points deduction
 
+    # Deduct points for type-checking diagnostics
+    ty_penalty = min((ty_result.error_count * 10) + (ty_result.warning_count * 5), 40)
+
     # Deduct points for high-confidence unused items
     vulture_penalty = min(
         vulture_result.high_confidence_items * 5, 30
@@ -243,8 +323,10 @@ def _calculate_quality_score(
         (vulture_result.total_items - vulture_result.high_confidence_items) * 2, 20
     )  # Max 20 points
 
-    # Replace temp variable with direct return
-    return max(0, base_score - ruff_penalty - vulture_penalty - total_unused_penalty)
+    return max(
+        0,
+        base_score - ruff_penalty - ty_penalty - vulture_penalty - total_unused_penalty,
+    )
 
 
 def main() -> None:
