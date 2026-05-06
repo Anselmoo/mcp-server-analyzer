@@ -18,15 +18,13 @@ class TyAnalyzer:
     def _check_ty_installation(self) -> None:
         """Verify that ty is installed and accessible."""
         try:
-            result = subprocess.run(
+            subprocess.run(
                 ["ty", "version"],
                 capture_output=True,
                 text=True,
                 timeout=10,
                 check=True,
             )
-            if result.returncode != 0:
-                raise RuntimeError(f"ty is not properly installed: {result.stderr}")
         except (
             subprocess.CalledProcessError,
             FileNotFoundError,
@@ -53,11 +51,12 @@ class TyAnalyzer:
                 f"project_path must be an existing directory: {resolved_project_path}"
             )
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-            f.write(code)
-            temp_file = Path(f.name)
-
+        temp_file: Path | None = None
         try:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+                f.write(code)
+                temp_file = Path(f.name)
+
             cmd = [
                 "ty",
                 "check",
@@ -97,7 +96,8 @@ class TyAnalyzer:
         except (FileNotFoundError, PermissionError) as e:
             raise RuntimeError(f"Failed to run ty: {e}") from e
         finally:
-            temp_file.unlink(missing_ok=True)
+            if temp_file is not None:
+                temp_file.unlink(missing_ok=True)
 
     def _parse_ty_output(self, output: str, temp_filename: str) -> list[TyDiagnostic]:
         """

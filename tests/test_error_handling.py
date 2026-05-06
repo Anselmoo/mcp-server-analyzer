@@ -245,3 +245,69 @@ class TestMainEntrypoint:
         with pytest.raises(SystemExit) as exc:
             server.main()
         assert exc.value.code == 1
+
+
+class TestServerNullAnalyzerGuards:
+    """Tests for null analyzer type guards in tool functions."""
+
+    def test_ruff_check_null_analyzer(self, monkeypatch):
+        """Test ruff_check handles None analyzer gracefully."""
+        monkeypatch.setattr(server, "ruff_available", True)
+        monkeypatch.setattr(server, "ruff_analyzer", None)
+        fn = cast(Any, server.ruff_check).fn
+        result = fn("code")
+        assert "error" in result
+        assert "Internal error" in result["error"]
+
+    def test_ruff_format_null_analyzer(self, monkeypatch):
+        """Test ruff_format handles None analyzer gracefully."""
+        monkeypatch.setattr(server, "ruff_available", True)
+        monkeypatch.setattr(server, "ruff_analyzer", None)
+        fn = cast(Any, server.ruff_format).fn
+        result = fn("code")
+        assert "error" in result
+        assert "Internal error" in result["error"]
+        assert result["changed"] is False
+
+    def test_ruff_check_ci_null_analyzer(self, monkeypatch):
+        """Test ruff_check_ci handles None analyzer gracefully."""
+        monkeypatch.setattr(server, "ruff_available", True)
+        monkeypatch.setattr(server, "ruff_analyzer", None)
+        fn = cast(Any, server.ruff_check_ci).fn
+        result = fn("code", "github")
+        assert "error" in result
+        assert "Internal error" in result["error"]
+        assert result["success"] is False
+
+    def test_ty_check_null_analyzer(self, monkeypatch):
+        """Test ty_check handles None analyzer gracefully."""
+        monkeypatch.setattr(server, "ty_available", True)
+        monkeypatch.setattr(server, "ty_analyzer", None)
+        fn = cast(Any, server.ty_check).fn
+        result = fn("code")
+        assert "error" in result
+        assert "Internal error" in result["error"]
+
+    def test_vulture_scan_null_analyzer(self, monkeypatch):
+        """Test vulture_scan handles None analyzer gracefully."""
+        monkeypatch.setattr(server, "vulture_available", True)
+        monkeypatch.setattr(server, "vulture_analyzer", None)
+        fn = cast(Any, server.vulture_scan).fn
+        result = fn("code")
+        assert "error" in result
+        assert "Internal error" in result["error"]
+
+    def test_analyze_code_null_analyzers(self, monkeypatch):
+        """Test analyze_code handles null analyzers gracefully."""
+        monkeypatch.setattr(server, "ruff_available", True)
+        monkeypatch.setattr(server, "ruff_analyzer", None)
+        monkeypatch.setattr(server, "ty_available", True)
+        monkeypatch.setattr(server, "ty_analyzer", None)
+        monkeypatch.setattr(server, "vulture_available", True)
+        monkeypatch.setattr(server, "vulture_analyzer", None)
+        fn = cast(Any, server.analyze_code).fn
+        result = fn("code")
+        assert "error" not in result
+        assert result["summary"]["total_ruff_issues"] == 0
+        assert result["summary"]["total_ty_diagnostics"] == 0
+        assert result["summary"]["total_unused_items"] == 0

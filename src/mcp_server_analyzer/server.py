@@ -68,8 +68,14 @@ def ruff_check(code: str, config_path: str | None = None) -> dict[str, Any]:
             "total_issues": 0,
             "fixable_issues": 0,
         }
+    if ruff_analyzer is None:
+        return {
+            "error": "Internal error: ruff_analyzer is None despite ruff_available being True",
+            "issues": [],
+            "total_issues": 0,
+            "fixable_issues": 0,
+        }
     try:
-        assert ruff_analyzer is not None
         result = ruff_analyzer.check_code(code, config_path)
         return result.model_dump()
     except Exception as e:
@@ -99,8 +105,13 @@ def ruff_format(code: str, config_path: str | None = None) -> dict[str, Any]:
             "formatted_code": code,
             "changed": False,
         }
+    if ruff_analyzer is None:
+        return {
+            "error": "Internal error: ruff_analyzer is None despite ruff_available being True",
+            "formatted_code": code,
+            "changed": False,
+        }
     try:
-        assert ruff_analyzer is not None
         result = ruff_analyzer.format_code(code, config_path)
         return result.model_dump()
     except Exception as e:
@@ -133,8 +144,14 @@ def ruff_check_ci(
             "format": output_format,
             "success": False,
         }
+    if ruff_analyzer is None:
+        return {
+            "error": "Internal error: ruff_analyzer is None despite ruff_available being True",
+            "output": "",
+            "format": output_format,
+            "success": False,
+        }
     try:
-        assert ruff_analyzer is not None
         result = ruff_analyzer.check_code_for_ci(code, output_format, config_path)
         return {
             "output": result,
@@ -171,8 +188,15 @@ def ty_check(code: str, project_path: str | None = None) -> dict[str, Any]:
             "warning_count": 0,
         }
 
+    if ty_analyzer is None:
+        return {
+            "error": "Internal error: ty_analyzer is None despite ty_available being True",
+            "diagnostics": [],
+            "total_diagnostics": 0,
+            "error_count": 0,
+            "warning_count": 0,
+        }
     try:
-        assert ty_analyzer is not None  # assure the type checker
         result = ty_analyzer.check_code(code, project_path)
         return result.model_dump()
     except Exception as e:
@@ -205,8 +229,15 @@ def vulture_scan(code: str, min_confidence: int = 80) -> dict[str, Any]:
             "high_confidence_items": 0,
         }
 
+    if vulture_analyzer is None:
+        return {
+            "error": "Internal error: vulture_analyzer is None despite vulture_available being True",
+            "unused_items": [],
+            "total_items": 0,
+            "high_confidence_items": 0,
+        }
+
     try:
-        assert vulture_analyzer is not None  # assure the type checker
         result = vulture_analyzer.scan_code(code, min_confidence)
         return result.model_dump()
     except Exception as e:
@@ -216,6 +247,36 @@ def vulture_scan(code: str, min_confidence: int = 80) -> dict[str, Any]:
             "total_items": 0,
             "high_confidence_items": 0,
         }
+
+
+def _get_ruff_result(code: str, config_path: str | None) -> RuffCheckResult:
+    """Get RUFF analysis result, with graceful fallback."""
+    if not ruff_available or ruff_analyzer is None:
+        return RuffCheckResult(issues=[], total_issues=0, fixable_issues=0)
+    return ruff_analyzer.check_code(code, config_path)
+
+
+def _get_ty_result(code: str, project_path: str | None) -> TyCheckResult:
+    """Get ty analysis result, with graceful fallback."""
+    if not ty_available or ty_analyzer is None:
+        return TyCheckResult(
+            diagnostics=[],
+            total_diagnostics=0,
+            error_count=0,
+            warning_count=0,
+        )
+    return ty_analyzer.check_code(code, project_path)
+
+
+def _get_vulture_result(code: str, min_confidence: int) -> VultureScanResult:
+    """Get VULTURE analysis result, with graceful fallback."""
+    if not vulture_available or vulture_analyzer is None:
+        return VultureScanResult(
+            unused_items=[],
+            total_items=0,
+            high_confidence_items=0,
+        )
+    return vulture_analyzer.scan_code(code, min_confidence)
 
 
 @app.tool(name="analyze-code")
@@ -238,36 +299,10 @@ def analyze_code(
         Dictionary containing combined analysis results with summary statistics
     """
     try:
-        # Run RUFF analysis
-        if ruff_available:
-            assert ruff_analyzer is not None
-            ruff_result = ruff_analyzer.check_code(code, ruff_config_path)
-        else:
-            ruff_result = RuffCheckResult(issues=[], total_issues=0, fixable_issues=0)
-
-        # Run ty analysis if available
-        if ty_available:
-            assert ty_analyzer is not None  # assure the type checker
-            ty_result = ty_analyzer.check_code(code, project_path)
-        else:
-            ty_result = TyCheckResult(
-                diagnostics=[],
-                total_diagnostics=0,
-                error_count=0,
-                warning_count=0,
-            )
-
-        # Run VULTURE analysis if available
-        if vulture_available:
-            assert vulture_analyzer is not None  # assure the type checker
-            vulture_result = vulture_analyzer.scan_code(code, min_confidence)
-        else:
-            # Create empty VULTURE result if not available
-            vulture_result = VultureScanResult(
-                unused_items=[],
-                total_items=0,
-                high_confidence_items=0,
-            )
+        # Run all analyses
+        ruff_result = _get_ruff_result(code, ruff_config_path)
+        ty_result = _get_ty_result(code, project_path)
+        vulture_result = _get_vulture_result(code, min_confidence)
 
         # Create summary statistics
         summary = {
