@@ -1,0 +1,8 @@
+# MCP runtime state
+# Keep this root visible so onboarding/docs and durable memory artifacts can be committed later.
+# Ignore ephemeral execution state and caches, including legacy flat session files.
+cache/
+sessions/
+session-*.json
+session-*.json.*
+config/*.key

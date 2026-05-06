@@ -22,7 +22,13 @@ logger = logging.getLogger(__name__)
 app: FastMCP[Any] = FastMCP("Python Analyzer")
 
 # Initialize analyzers
-ruff_analyzer = RuffAnalyzer()
+try:
+    ruff_analyzer: RuffAnalyzer | None = RuffAnalyzer()
+    ruff_available = True
+except RuntimeError as e:
+    logger.warning("ruff not available: %s", e)
+    ruff_analyzer = None
+    ruff_available = False
 
 # Try to initialize ty analyzer, but handle gracefully if it fails
 try:
@@ -55,7 +61,15 @@ def ruff_check(code: str, config_path: str | None = None) -> dict[str, Any]:
     Returns:
         Dictionary containing linting results with issues, counts, and metadata
     """
+    if not ruff_available:
+        return {
+            "error": "ruff is not available - please install the ruff package",
+            "issues": [],
+            "total_issues": 0,
+            "fixable_issues": 0,
+        }
     try:
+        assert ruff_analyzer is not None
         result = ruff_analyzer.check_code(code, config_path)
         return result.model_dump()
     except Exception as e:
@@ -79,7 +93,14 @@ def ruff_format(code: str, config_path: str | None = None) -> dict[str, Any]:
     Returns:
         Dictionary containing formatted code and change status
     """
+    if not ruff_available:
+        return {
+            "error": "ruff is not available - please install the ruff package",
+            "formatted_code": code,
+            "changed": False,
+        }
     try:
+        assert ruff_analyzer is not None
         result = ruff_analyzer.format_code(code, config_path)
         return result.model_dump()
     except Exception as e:
@@ -105,7 +126,15 @@ def ruff_check_ci(
     Returns:
         Dictionary containing raw RUFF output in specified format
     """
+    if not ruff_available:
+        return {
+            "error": "ruff is not available - please install the ruff package",
+            "output": "",
+            "format": output_format,
+            "success": False,
+        }
     try:
+        assert ruff_analyzer is not None
         result = ruff_analyzer.check_code_for_ci(code, output_format, config_path)
         return {
             "output": result,
@@ -210,7 +239,11 @@ def analyze_code(
     """
     try:
         # Run RUFF analysis
-        ruff_result = ruff_analyzer.check_code(code, ruff_config_path)
+        if ruff_available:
+            assert ruff_analyzer is not None
+            ruff_result = ruff_analyzer.check_code(code, ruff_config_path)
+        else:
+            ruff_result = RuffCheckResult(issues=[], total_issues=0, fixable_issues=0)
 
         # Run ty analysis if available
         if ty_available:
