@@ -1,6 +1,10 @@
 from mcp_server_analyzer import server
 
 
+def _get_fn(tool):
+    return getattr(tool, "fn", tool)
+
+
 class FakeRuffResult:
     def __init__(self):
         self.total_issues = 0
@@ -32,18 +36,13 @@ def test_server_ruff_wrappers(monkeypatch):
     monkeypatch.setattr(server, "ruff_analyzer", fake)
     monkeypatch.setattr(server, "ruff_available", True)
 
-    from typing import Any, cast
-
-    ruff_check_fn = cast(Any, server.ruff_check).fn
-    res = ruff_check_fn("x=1")
+    res = _get_fn(server.ruff_check)("x=1")
     assert "total_issues" in res
 
-    ruff_format_fn = cast(Any, server.ruff_format).fn
-    res_fmt = ruff_format_fn("x=1")
+    res_fmt = _get_fn(server.ruff_format)("x=1")
     assert "formatted_code" in res_fmt or "total_issues" in res_fmt
 
-    ruff_ci_fn = cast(Any, server.ruff_check_ci).fn
-    res_ci = ruff_ci_fn("x=1")
+    res_ci = _get_fn(server.ruff_check_ci)("x=1")
     assert res_ci.get("success") is True
 
 
@@ -55,9 +54,6 @@ def test_analyze_code_with_missing_analyzers(monkeypatch):
     monkeypatch.setattr(server, "ty_available", False)
     monkeypatch.setattr(server, "vulture_available", False)
 
-    from typing import Any, cast
-
-    analyze_fn = cast(Any, server.analyze_code).fn
-    result = analyze_fn("x=1")
+    result = _get_fn(server.analyze_code)("x=1")
     assert "summary" in result
     assert result["summary"]["total_ruff_issues"] == 0
