@@ -1,7 +1,6 @@
 """Error handling and edge case tests for server and analyzers."""
 
 import subprocess
-from typing import Any, cast
 from unittest.mock import Mock
 
 import pytest
@@ -12,13 +11,18 @@ from mcp_server_analyzer.analyzers.ty import TyAnalyzer
 from mcp_server_analyzer.models import RuffCheckResult
 
 
+def _get_fn(tool_func):
+    """Extract the underlying function from a tool, handling both FunctionTool and plain functions."""
+    return getattr(tool_func, "fn", tool_func)
+
+
 class TestServerToolsUnavailable:
     """Tests for tool functions when analyzers are unavailable."""
 
     def test_ruff_check_unavailable(self, monkeypatch):
         """Test ruff_check returns error when unavailable."""
         monkeypatch.setattr(server, "ruff_available", False)
-        fn = cast(Any, server.ruff_check).fn
+        fn = _get_fn(server.ruff_check)
         result = fn("code")
         assert "error" in result
         assert "ruff is not available" in result["error"]
@@ -26,7 +30,7 @@ class TestServerToolsUnavailable:
     def test_ruff_format_unavailable(self, monkeypatch):
         """Test ruff_format returns error when unavailable."""
         monkeypatch.setattr(server, "ruff_available", False)
-        fn = cast(Any, server.ruff_format).fn
+        fn = _get_fn(server.ruff_format)
         result = fn("code")
         assert "error" in result
         assert result["changed"] is False
@@ -34,7 +38,7 @@ class TestServerToolsUnavailable:
     def test_ruff_check_ci_unavailable(self, monkeypatch):
         """Test ruff_check_ci returns error when unavailable."""
         monkeypatch.setattr(server, "ruff_available", False)
-        fn = cast(Any, server.ruff_check_ci).fn
+        fn = _get_fn(server.ruff_check_ci)
         result = fn("code")
         assert "error" in result
         assert result["success"] is False
@@ -42,7 +46,7 @@ class TestServerToolsUnavailable:
     def test_ty_check_unavailable(self, monkeypatch):
         """Test ty_check returns error when unavailable."""
         monkeypatch.setattr(server, "ty_available", False)
-        fn = cast(Any, server.ty_check).fn
+        fn = _get_fn(server.ty_check)
         result = fn("code")
         assert "error" in result
         assert "ty is not available" in result["error"]
@@ -50,7 +54,7 @@ class TestServerToolsUnavailable:
     def test_vulture_scan_unavailable(self, monkeypatch):
         """Test vulture_scan returns error when unavailable."""
         monkeypatch.setattr(server, "vulture_available", False)
-        fn = cast(Any, server.vulture_scan).fn
+        fn = _get_fn(server.vulture_scan)
         result = fn("code")
         assert "error" in result
         assert "VULTURE is not available" in result["error"]
@@ -66,7 +70,7 @@ class TestServerToolsExceptions:
         monkeypatch.setattr(server, "ruff_analyzer", mock_analyzer)
         monkeypatch.setattr(server, "ruff_available", True)
 
-        fn = cast(Any, server.ruff_check).fn
+        fn = _get_fn(server.ruff_check)
         result = fn("code")
         assert "error" in result
         assert "RUFF check failed" in result["error"]
@@ -78,7 +82,7 @@ class TestServerToolsExceptions:
         monkeypatch.setattr(server, "ruff_analyzer", mock_analyzer)
         monkeypatch.setattr(server, "ruff_available", True)
 
-        fn = cast(Any, server.ruff_format).fn
+        fn = _get_fn(server.ruff_format)
         result = fn("code")
         assert "error" in result
         assert "RUFF format failed" in result["error"]
@@ -90,7 +94,7 @@ class TestServerToolsExceptions:
         monkeypatch.setattr(server, "ruff_analyzer", mock_analyzer)
         monkeypatch.setattr(server, "ruff_available", True)
 
-        fn = cast(Any, server.ruff_check_ci).fn
+        fn = _get_fn(server.ruff_check_ci)
         result = fn("code")
         assert "error" in result
         assert "RUFF CI check failed" in result["error"]
@@ -102,7 +106,7 @@ class TestServerToolsExceptions:
         monkeypatch.setattr(server, "ty_analyzer", mock_analyzer)
         monkeypatch.setattr(server, "ty_available", True)
 
-        fn = cast(Any, server.ty_check).fn
+        fn = _get_fn(server.ty_check)
         result = fn("code")
         assert "error" in result
         assert "ty check failed" in result["error"]
@@ -114,7 +118,7 @@ class TestServerToolsExceptions:
         monkeypatch.setattr(server, "vulture_analyzer", mock_analyzer)
         monkeypatch.setattr(server, "vulture_available", True)
 
-        fn = cast(Any, server.vulture_scan).fn
+        fn = _get_fn(server.vulture_scan)
         result = fn("code")
         assert "error" in result
         assert "VULTURE scan failed" in result["error"]
@@ -129,7 +133,7 @@ class TestAnalyzeCodeErrorPaths:
         monkeypatch.setattr(server, "ty_available", False)
         monkeypatch.setattr(server, "vulture_available", False)
 
-        fn = cast(Any, server.analyze_code).fn
+        fn = _get_fn(server.analyze_code)
         result = fn("code")
         assert "summary" in result
         assert result["summary"]["total_ruff_issues"] == 0
@@ -146,7 +150,7 @@ class TestAnalyzeCodeErrorPaths:
         monkeypatch.setattr(server, "ty_available", False)
         monkeypatch.setattr(server, "vulture_available", False)
 
-        fn = cast(Any, server.analyze_code).fn
+        fn = _get_fn(server.analyze_code)
         result = fn("code")
         assert result["summary"]["total_ruff_issues"] == 3
 
@@ -157,7 +161,7 @@ class TestAnalyzeCodeErrorPaths:
         monkeypatch.setattr(server, "ruff_analyzer", mock_ruff)
         monkeypatch.setattr(server, "ruff_available", True)
 
-        fn = cast(Any, server.analyze_code).fn
+        fn = _get_fn(server.analyze_code)
         result = fn("code")
         assert "error" in result
         assert "Code analysis failed" in result["error"]
@@ -254,7 +258,7 @@ class TestServerNullAnalyzerGuards:
         """Test ruff_check handles None analyzer gracefully."""
         monkeypatch.setattr(server, "ruff_available", True)
         monkeypatch.setattr(server, "ruff_analyzer", None)
-        fn = cast(Any, server.ruff_check).fn
+        fn = _get_fn(server.ruff_check)
         result = fn("code")
         assert "error" in result
         assert "Internal error" in result["error"]
@@ -263,7 +267,7 @@ class TestServerNullAnalyzerGuards:
         """Test ruff_format handles None analyzer gracefully."""
         monkeypatch.setattr(server, "ruff_available", True)
         monkeypatch.setattr(server, "ruff_analyzer", None)
-        fn = cast(Any, server.ruff_format).fn
+        fn = _get_fn(server.ruff_format)
         result = fn("code")
         assert "error" in result
         assert "Internal error" in result["error"]
@@ -273,7 +277,7 @@ class TestServerNullAnalyzerGuards:
         """Test ruff_check_ci handles None analyzer gracefully."""
         monkeypatch.setattr(server, "ruff_available", True)
         monkeypatch.setattr(server, "ruff_analyzer", None)
-        fn = cast(Any, server.ruff_check_ci).fn
+        fn = _get_fn(server.ruff_check_ci)
         result = fn("code", "github")
         assert "error" in result
         assert "Internal error" in result["error"]
@@ -283,7 +287,7 @@ class TestServerNullAnalyzerGuards:
         """Test ty_check handles None analyzer gracefully."""
         monkeypatch.setattr(server, "ty_available", True)
         monkeypatch.setattr(server, "ty_analyzer", None)
-        fn = cast(Any, server.ty_check).fn
+        fn = _get_fn(server.ty_check)
         result = fn("code")
         assert "error" in result
         assert "Internal error" in result["error"]
@@ -292,7 +296,7 @@ class TestServerNullAnalyzerGuards:
         """Test vulture_scan handles None analyzer gracefully."""
         monkeypatch.setattr(server, "vulture_available", True)
         monkeypatch.setattr(server, "vulture_analyzer", None)
-        fn = cast(Any, server.vulture_scan).fn
+        fn = _get_fn(server.vulture_scan)
         result = fn("code")
         assert "error" in result
         assert "Internal error" in result["error"]
@@ -305,7 +309,7 @@ class TestServerNullAnalyzerGuards:
         monkeypatch.setattr(server, "ty_analyzer", None)
         monkeypatch.setattr(server, "vulture_available", True)
         monkeypatch.setattr(server, "vulture_analyzer", None)
-        fn = cast(Any, server.analyze_code).fn
+        fn = _get_fn(server.analyze_code)
         result = fn("code")
         assert "error" not in result
         assert result["summary"]["total_ruff_issues"] == 0
