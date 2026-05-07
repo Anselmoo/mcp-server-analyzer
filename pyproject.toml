@@ -3,7 +3,7 @@
 [project]
 name = "mcp-server-analyzer"
 version = "0.1.2"
-description = "MCP server for Python code analysis with RUFF linting and VULTURE dead code detection"
+description = "MCP server for Python code analysis with Ruff linting, ty type checking, and Vulture dead code detection"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
@@ -14,8 +14,10 @@ keywords = [
     "ruff",
     "vulture",
     "python",
+    "ty",
     "code-analysis",
     "linting",
+    "type-checking",
     "static-analysis",
 ]
 classifiers = [
@@ -32,6 +34,7 @@ classifiers = [
 dependencies = [
     "fastmcp>=0.3.0",
     "ruff>=0.8.0",
+    "ty>=0.0.33",
     "vulture>=2.11",
     "pydantic>=2.0.0",
 ]
@@ -41,7 +44,7 @@ dev = [
     "pytest>=8.4.1",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
-    "mypy>=1.0.0",
+    "ty>=0.0.33",
     "black>=23.0.0",
     "bandit>=1.7.0",
     "safety>=2.0.0",
@@ -70,13 +73,13 @@ dependencies = [
     "pytest>=8.4.1",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
-    "mypy>=1.0.0",
+    "ty>=0.0.33",
 ]
 
 [tool.hatch.envs.default.scripts]
 test = "pytest"
 test-cov = "pytest --cov=src/mcp_server_analyzer --cov-report=xml --cov-report=html"
-type-check = "mypy src"
+type-check = "ty check src tests"
 lint = "ruff check src tests"
 format = "ruff format src tests"
 format-check = "ruff format --check src tests"
@@ -116,21 +119,15 @@ indent-style = "space"
 [tool.ruff.lint.per-file-ignores]
 "test_*.py" = ["PLR2004", "PLC0415"]
 
-[tool.mypy]
-python_version = "3.10"
-strict = true
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
-strict_equality = true
+[tool.ty.environment]
+python-version = "3.10"
+root = ["./src"]
+
+[tool.ty.src]
+include = ["src", "tests"]
+
+[tool.ty.terminal]
+output-format = "concise"
 
 [tool.vulture]
 # VULTURE configuration for dead code detection
@@ -158,4 +155,13 @@ skips = ["B101", "B601"]
 skips = ["*/*test*.py", "*/test_*.py"]
 
 [dependency-groups]
-dev = ["pytest>=8.4.1", "pytest-cov>=6.2.1"]
+dev = [
+    "pytest>=8.4.1",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=6.2.1",
+    "ty>=0.0.33",
+    "black>=23.0.0",
+    "bandit>=1.7.0",
+    "safety>=2.0.0",
+    "pre-commit>=3.0.0",
+]

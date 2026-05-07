@@ -11,7 +11,7 @@
 [![AgentSeal MCP](https://agentseal.org/api/v1/mcp/mcp-server-analyzer/badge)](https://agentseal.org/mcp/mcp-server-analyzer)
 
 
-A powerful [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that provides comprehensive Python code analysis using [**RUFF**](https://docs.astral.sh/ruff/) for linting and [**VULTURE**](https://github.com/jendrikseipp/vulture) for dead code detection. Perfect for AI assistants, IDEs, and automated code review workflows.
+A powerful [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that provides comprehensive Python code analysis using [**Ruff**](https://docs.astral.sh/ruff/) for linting, [**ty**](https://docs.astral.sh/ty/) for type checking, and [**Vulture**](https://github.com/jendrikseipp/vulture) for dead code detection. Perfect for AI assistants, IDEs, and automated code review workflows.
 
 ## 🚀 Quick Start
 
@@ -81,6 +81,7 @@ uv run mcp-server-analyzer
 ## 📋 Features
 
 - **🔍 RUFF Analysis**: Comprehensive Python linting with auto-fixes
+- **🧠 ty Type Checking**: Fast Python type analysis with rule-based diagnostics
 - **🧹 Dead Code Detection**: Find unused imports, functions, and variables with VULTURE
 - **📊 Quality Scoring**: Combined analysis with quality metrics
 - **🚀 FastMCP Framework**: High-performance MCP server implementation
@@ -104,8 +105,9 @@ Explore dead code detection capabilities: **[🧹 VULTURE Analysis Preview](exam
 | `ruff-check`    | Lint Python code with RUFF       | Style violations, potential errors   |
 | `ruff-format`   | Format Python code with RUFF     | Code formatting and consistency      |
 | `ruff-check-ci` | CI/CD optimized RUFF output      | GitHub Actions, GitLab CI            |
+| `ty-check`      | Type-check Python code with ty   | Type safety, incorrect return values |
 | `vulture-scan`  | Dead code detection              | Unused imports, functions, variables |
-| `analyze-code`  | Combined RUFF + VULTURE analysis | Complete code quality assessment     |
+| `analyze-code`  | Combined Ruff + ty + Vulture analysis | Complete code quality assessment |
 
 ## 🔧 Configuration
 
@@ -158,6 +160,9 @@ uv sync --dev
 # Run tests
 uv run pytest
 
+# Run type checks
+uv run ty check src tests
+
 # Run pre-commit hooks
 uv tool run pre-commit run --all-files
 
@@ -175,14 +180,15 @@ uv run pytest tests/ -v
 uv run pytest --cov=src/mcp_server_analyzer --cov-report=html
 
 # Test specific functionality
-uv run pytest tests/test_server.py::TestAnalyzer::test_ruff_analysis
+uv run pytest tests/test_server.py::TestAnalyzers::test_ruff_with_sample_code
 ```
 
 ## 📊 Quality Metrics
 
 The server provides quality scoring based on:
 
-- **RUFF Issues**: Style violations, potential bugs, complexity metrics
+- **Ruff Issues**: Style violations, potential bugs, complexity metrics
+- **ty Diagnostics**: Static typing errors and warnings
 - **Dead Code Detection**: Unused imports, functions, variables
 - **Combined Score**: Weighted quality assessment (0-100)
 
@@ -198,8 +204,9 @@ The server provides quality scoring based on:
 
 - **[MCP Specification](https://modelcontextprotocol.io/)** - Learn about Model Context Protocol
 - **[FastMCP Framework](https://gofastmcp.com/)** - High-performance MCP implementation
-- **[RUFF Documentation](https://docs.astral.sh/ruff/)** - Python linter and formatter
-- **[VULTURE Documentation](https://github.com/jendrikseipp/vulture)** - Dead code finder
+- **[Ruff Documentation](https://docs.astral.sh/ruff/)** - Python linter and formatter
+- **[ty Documentation](https://docs.astral.sh/ty/)** - Python type checker and language server
+- **[Vulture Documentation](https://github.com/jendrikseipp/vulture)** - Dead code finder
 
 ## 🤝 Contributing
 

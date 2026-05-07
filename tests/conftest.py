@@ -40,3 +40,12 @@ def main() -> int:
 if __name__ == "__main__":
     main()
 '''
+
+
+@pytest.fixture
+def sample_type_error_code() -> str:
+    """Provide sample code with a clear type error for ty tests."""
+    return """
+def returns_number() -> int:
+    return "not a number"
+"""
