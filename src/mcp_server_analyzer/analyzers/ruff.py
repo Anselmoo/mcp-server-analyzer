@@ -41,6 +41,7 @@ class RuffAnalyzer:
 
         Returns:
             RuffCheckResult containing linting issues
+
         """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write(code)
@@ -102,6 +103,7 @@ class RuffAnalyzer:
 
         Returns:
             Raw RUFF output in specified format
+
         """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write(code)
@@ -137,6 +139,7 @@ class RuffAnalyzer:
 
         Returns:
             RuffFormatResult containing formatted code
+
         """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write(code)
@@ -174,6 +177,7 @@ class RuffAnalyzer:
 
         Returns:
             Severity level string
+
         """
         # Map RUFF rule prefixes to severity levels
         if rule_code.startswith(("F", "E9")):

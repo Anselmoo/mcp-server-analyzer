@@ -107,13 +107,14 @@ jobs:
 
       - uses: astral-sh/setup-uv@v6
         with:
+          python-version: ${{ env.PYTHON_VERSION }}
           enable-cache: true
 
       - name: Build distributions
         run: uv build
 
       - name: Verify with twine
-        run: uv run twine check dist/*
+        run: uvx twine check dist/*
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
@@ -189,7 +190,7 @@ jobs:
           tags: mcp-server-analyzer:smoke
 
       - name: Smoke test
-        run: docker run --rm mcp-server-analyzer:smoke mcp-server-analyzer --help || true
+        run: docker run --rm mcp-server-analyzer:smoke mcp-server-analyzer --help
 
   # ============================================================================
   # Docker Publish (on version tags)
@@ -295,17 +296,22 @@ jobs:
 
       - name: Install from TestPyPI with retry
         run: |
+          success=false
           for i in $(seq 1 8); do
             uv pip install \
               --index-url https://test.pypi.org/simple/ \
               --extra-index-url https://pypi.org/simple/ \
-              mcp-server-analyzer==${GITHUB_REF_NAME#v} && break
+              mcp-server-analyzer==${GITHUB_REF_NAME#v} && success=true && break
             echo "Attempt $i failed, retrying in 20s..."
             sleep 20
           done
+          if [ "$success" != "true" ]; then
+            echo "All install attempts failed"
+            exit 1
+          fi
 
       - name: Smoke test
-        run: mcp-server-analyzer --help || true
+        run: mcp-server-analyzer --help
 
   # ============================================================================
   # Publish to PyPI (on version tags)

@@ -84,7 +84,7 @@ def get_overview() -> str:
     tags={"config"},
 )
 def get_analyzer_versions() -> str:
-    """Current versions of installed analyzers."""
+    """Return current versions of installed analyzers."""
     versions: dict[str, str] = {}
     for pkg in ("ruff", "ty", "vulture", "fastmcp"):
         try:
@@ -112,6 +112,7 @@ def ruff_check(code: str, config_path: str | None = None) -> dict[str, Any]:
 
     Returns:
         Dictionary containing linting results with issues, counts, and metadata
+
     """
     if not code.strip():
         raise ToolError("Input code must not be empty.")
@@ -156,6 +157,7 @@ def ruff_format(code: str, config_path: str | None = None) -> dict[str, Any]:
 
     Returns:
         Dictionary containing formatted code and change status
+
     """
     if not code.strip():
         raise ToolError("Input code must not be empty.")
@@ -200,6 +202,7 @@ def ruff_check_ci(
 
     Returns:
         Dictionary containing raw RUFF output in specified format
+
     """
     if not code.strip():
         raise ToolError("Input code must not be empty.")
@@ -248,6 +251,7 @@ def ty_check(code: str, project_path: str | None = None) -> dict[str, Any]:
 
     Returns:
         Dictionary containing type diagnostics and counts
+
     """
     if not code.strip():
         raise ToolError("Input code must not be empty.")
@@ -295,6 +299,7 @@ def vulture_scan(code: str, min_confidence: int = 80) -> dict[str, Any]:
 
     Returns:
         Dictionary containing unused code items with confidence scores and locations
+
     """
     if not code.strip():
         raise ToolError("Input code must not be empty.")
@@ -373,6 +378,7 @@ def analyze_code(
 
     Returns:
         Dictionary containing combined analysis results with summary statistics
+
     """
     if not code.strip():
         raise ToolError("Input code must not be empty.")
@@ -453,7 +459,7 @@ def _calculate_quality_score(
 
 
 def main() -> None:
-    """Main entry point for the MCP server."""
+    """Run the MCP server as main entry point."""
     try:
         app.run()
     except KeyboardInterrupt:

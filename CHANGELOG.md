@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2026-05-23
 
 ### Added
-- FastMCP 2.x modern patterns: `ToolAnnotations` (readOnlyHint, idempotentHint), `tags`, and `timeout` on all tools
+- FastMCP 2.x modern patterns: `ToolAnnotations` (readOnlyHint, idempotentHint) and `tags` on all tools
 - `ToolError` for clean input-validation errors (empty code guard on all tools)
 - `mask_error_details=True` on the server to prevent leaking internal stack traces
 - Two MCP resources: `docs://analyzers/overview` (markdown) and `config://analyzer-versions` (JSON)

@@ -17,7 +17,9 @@ class RuffIssue(BaseModel):
     rule: str = Field(description="RUFF rule code (e.g., F401, E302)")
     message: str = Field(description="Human-readable description of the issue")
     severity: str = Field(description="Issue severity level")
-    fixable: bool = Field(False, description="Whether the issue can be auto-fixed")
+    fixable: bool = Field(
+        default=False, description="Whether the issue can be auto-fixed"
+    )
 
 
 class RuffCheckResult(BaseModel):
