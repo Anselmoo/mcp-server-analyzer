@@ -130,7 +130,7 @@ def ruff_check(code: str, config_path: str | None = None) -> RuffCheckResult:
 @mcp.tool(
     name="ruff-format",
     tags={"linting", "ruff"},
-    annotations=ToolAnnotations(readOnlyHint=False, idempotentHint=True),
+    annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True),
 )
 def ruff_format(code: str, config_path: str | None = None) -> RuffFormatResult:
     """

@@ -42,7 +42,7 @@ async def test_list_resources(client):
 
 @pytest.mark.asyncio
 async def test_ruff_check_clean_code(client):
-    result = await client.call_tool("ruff-check", {"code": "x = 1\n"})
+    result = await client.call_tool("ruff-check", {"code": "pass\n"})
     assert not result.is_error
     parsed = result.structured_content
     assert "total_issues" in parsed
