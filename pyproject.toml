@@ -157,7 +157,7 @@ ignore_decorators = ["@pytest.fixture", "@mcp.tool", "@mcp.resource"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--strict-markers --strict-config --verbose"
+addopts = "--strict-markers --strict-config --verbose --cov=src/mcp_server_analyzer --cov-report=xml --cov-report=html --cov-fail-under=100"
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
