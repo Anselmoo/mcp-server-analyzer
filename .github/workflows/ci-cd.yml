@@ -294,6 +294,9 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Create virtual environment
+        run: uv venv --python ${{ env.PYTHON_VERSION }}
+
       - name: Install from TestPyPI with retry
         run: |
           success=false
@@ -311,7 +314,7 @@ jobs:
           fi
 
       - name: Smoke test
-        run: mcp-server-analyzer --help
+        run: .venv/bin/mcp-server-analyzer --help
 
   # ============================================================================
   # Publish to PyPI (on version tags)
