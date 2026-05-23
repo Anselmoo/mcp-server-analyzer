@@ -19,15 +19,13 @@ class RuffAnalyzer:
     def _check_ruff_installation(self) -> None:
         """Verify that RUFF is installed and accessible."""
         try:
-            result = subprocess.run(
+            subprocess.run(
                 ["ruff", "--version"],
                 capture_output=True,
                 text=True,
                 check=True,
                 timeout=10,
             )
-            if result.returncode != 0:
-                raise RuntimeError("RUFF is not properly installed")
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
             raise RuntimeError(f"RUFF is not available: {e}") from e
 

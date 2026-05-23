@@ -18,17 +18,13 @@ class VultureAnalyzer:
     def _check_vulture_installation(self) -> None:
         """Verify that VULTURE is installed and accessible."""
         try:
-            result = subprocess.run(
+            subprocess.run(
                 ["vulture", "--version"],
                 capture_output=True,
                 text=True,
                 timeout=10,
                 check=True,
             )
-            if result.returncode != 0:
-                raise RuntimeError(
-                    f"VULTURE is not properly installed: {result.stderr}"
-                )
         except (
             subprocess.CalledProcessError,
             FileNotFoundError,
