@@ -290,6 +290,12 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -297,21 +303,8 @@ jobs:
       - name: Create virtual environment
         run: uv venv --python ${{ env.PYTHON_VERSION }}
 
-      - name: Install from TestPyPI with retry
-        run: |
-          success=false
-          for i in $(seq 1 8); do
-            uv pip install \
-              --index-url https://test.pypi.org/simple/ \
-              --extra-index-url https://pypi.org/simple/ \
-              mcp-server-analyzer==${GITHUB_REF_NAME#v} && success=true && break
-            echo "Attempt $i failed, retrying in 20s..."
-            sleep 20
-          done
-          if [ "$success" != "true" ]; then
-            echo "All install attempts failed"
-            exit 1
-          fi
+      - name: Install wheel artifact
+        run: uv pip install --python .venv/bin/python dist/*.whl
 
       - name: Smoke test
         run: .venv/bin/mcp-server-analyzer --help
