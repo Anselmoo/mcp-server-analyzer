@@ -20,6 +20,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: astral-sh/setup-uv@v6
         with:
@@ -30,6 +32,14 @@ jobs:
 
       - name: Run pre-commit
         run: uv run pre-commit run --all-files --show-diff-on-failure
+
+      - name: Validate release policy (rrt)
+        uses: Anselmoo/repo-release-tools@v1.6.2
+        with:
+          check-branch-name: "true"
+          check-commit-subject: "true"
+          check-changelog: "true"
+          changelog-strategy: "release-only"
 
   # ============================================================================
   # Tests

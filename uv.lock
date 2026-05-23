@@ -549,6 +549,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
+    { name = "repo-release-tools" },
     { name = "safety" },
     { name = "ty" },
 ]
@@ -566,6 +567,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
+    { name = "repo-release-tools" },
     { name = "safety" },
     { name = "ty" },
 ]
@@ -583,6 +585,7 @@ requires-dist = [
     { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.21.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=4.0.0" },
+    { name = "repo-release-tools", marker = "extra == 'dev'", specifier = ">=1.6.2" },
     { name = "ruff", specifier = ">=0.8.0" },
     { name = "safety", marker = "extra == 'dev'", specifier = ">=2.0.0" },
     { name = "ty", specifier = ">=0.0.33" },
@@ -599,6 +602,7 @@ dev = [
     { name = "pytest", specifier = ">=8.4.1" },
     { name = "pytest-asyncio", specifier = ">=0.21.0" },
     { name = "pytest-cov", specifier = ">=6.2.1" },
+    { name = "repo-release-tools", specifier = ">=1.6.2" },
     { name = "safety", specifier = ">=2.0.0" },
     { name = "ty", specifier = ">=0.0.33" },
 ]
@@ -931,6 +935,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/2f/db/98b5c277be99dd18bfd91dd04e1b759cad18d1a338188c936e92f921c7e2/referencing-0.36.2.tar.gz", hash = "sha256:df2e89862cd09deabbdba16944cc3f10feb6b3e6f18e902f7cc25609a34775aa", size = 74744, upload-time = "2025-01-25T08:48:16.138Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c1/b1/3baf80dc6d2b7bc27a95a67752d0208e410351e3feb4eb78de5f77454d8d/referencing-0.36.2-py3-none-any.whl", hash = "sha256:e8699adbbf8b5c7de96d8ffa0eb5c158b3beafce084968e2ea8bb08c6794dcd0", size = 26775, upload-time = "2025-01-25T08:48:14.241Z" },
+]
+
+[[package]]
+name = "repo-release-tools"
+version = "1.6.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/02/06/f781fa32c205bbef4ec3d49f6a575729912f105b0c295cab2dc9110a0012/repo_release_tools-1.6.2.tar.gz", hash = "sha256:08c4790b45591b8eff225b146a8ec41d1c05c12cadd56ed35c239129972b403a", size = 228103, upload-time = "2026-05-20T17:41:43.48Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/06/6a/96c1df9a5bbdbb31409861769922788a6735c0c8ed5df5a43539525c7717/repo_release_tools-1.6.2-py3-none-any.whl", hash = "sha256:2954fc848c9effb79e87c2a15c7d49776d9914a13de7f9229cbd5e7c37322bb3", size = 302686, upload-time = "2026-05-20T17:41:41.626Z" },
 ]
 
 [[package]]
