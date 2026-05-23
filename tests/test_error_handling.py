@@ -11,7 +11,12 @@ from mcp_server_analyzer import server
 from mcp_server_analyzer.analyzers.ruff import RuffAnalyzer
 from mcp_server_analyzer.analyzers.ty import TyAnalyzer
 from mcp_server_analyzer.analyzers.vulture import VultureAnalyzer
-from mcp_server_analyzer.models import RuffCheckResult
+from mcp_server_analyzer.models import (
+    AnalysisResult,
+    RuffCheckResult,
+    TyCheckResult,
+    VultureScanResult,
+)
 
 
 def _get_fn(tool_func):
@@ -23,123 +28,113 @@ class TestServerToolsUnavailable:
     """Tests for tool functions when analyzers are unavailable."""
 
     def test_ruff_check_unavailable(self, monkeypatch):
-        """Test ruff_check returns error when unavailable."""
+        """Test ruff_check raises ToolError when unavailable."""
         monkeypatch.setattr(server, "ruff_available", False)
         fn = _get_fn(server.ruff_check)
-        result = fn("code")
-        assert "error" in result
-        assert "ruff is not available" in result["error"]
+        with pytest.raises(ToolError, match="not available"):
+            fn("code")
 
     def test_ruff_format_unavailable(self, monkeypatch):
-        """Test ruff_format returns error when unavailable."""
+        """Test ruff_format raises ToolError when unavailable."""
         monkeypatch.setattr(server, "ruff_available", False)
         fn = _get_fn(server.ruff_format)
-        result = fn("code")
-        assert "error" in result
-        assert result["changed"] is False
+        with pytest.raises(ToolError, match="not available"):
+            fn("code")
 
     def test_ruff_check_ci_unavailable(self, monkeypatch):
-        """Test ruff_check_ci returns error when unavailable."""
+        """Test ruff_check_ci raises ToolError when unavailable."""
         monkeypatch.setattr(server, "ruff_available", False)
         fn = _get_fn(server.ruff_check_ci)
-        result = fn("code")
-        assert "error" in result
-        assert result["success"] is False
+        with pytest.raises(ToolError, match="not available"):
+            fn("code")
 
     def test_ty_check_unavailable(self, monkeypatch):
-        """Test ty_check returns error when unavailable."""
+        """Test ty_check raises ToolError when unavailable."""
         monkeypatch.setattr(server, "ty_available", False)
         fn = _get_fn(server.ty_check)
-        result = fn("code")
-        assert "error" in result
-        assert "ty is not available" in result["error"]
+        with pytest.raises(ToolError, match="not available"):
+            fn("code")
 
     def test_vulture_scan_unavailable(self, monkeypatch):
-        """Test vulture_scan returns error when unavailable."""
+        """Test vulture_scan raises ToolError when unavailable."""
         monkeypatch.setattr(server, "vulture_available", False)
         fn = _get_fn(server.vulture_scan)
-        result = fn("code")
-        assert "error" in result
-        assert "VULTURE is not available" in result["error"]
+        with pytest.raises(ToolError, match="not available"):
+            fn("code")
 
 
 class TestServerToolsExceptions:
     """Tests for tool functions handling analyzer exceptions."""
 
     def test_ruff_check_exception(self, monkeypatch):
-        """Test ruff_check handles analyzer exception."""
+        """Test ruff_check raises ToolError on analyzer exception."""
         mock_analyzer = Mock()
         mock_analyzer.check_code.side_effect = RuntimeError("Check failed")
         monkeypatch.setattr(server, "ruff_analyzer", mock_analyzer)
         monkeypatch.setattr(server, "ruff_available", True)
 
         fn = _get_fn(server.ruff_check)
-        result = fn("code")
-        assert "error" in result
-        assert "RUFF check failed" in result["error"]
+        with pytest.raises(ToolError, match="RUFF check failed"):
+            fn("code")
 
     def test_ruff_format_exception(self, monkeypatch):
-        """Test ruff_format handles analyzer exception."""
+        """Test ruff_format raises ToolError on analyzer exception."""
         mock_analyzer = Mock()
         mock_analyzer.format_code.side_effect = RuntimeError("Format failed")
         monkeypatch.setattr(server, "ruff_analyzer", mock_analyzer)
         monkeypatch.setattr(server, "ruff_available", True)
 
         fn = _get_fn(server.ruff_format)
-        result = fn("code")
-        assert "error" in result
-        assert "RUFF format failed" in result["error"]
+        with pytest.raises(ToolError, match="RUFF format failed"):
+            fn("code")
 
     def test_ruff_check_ci_exception(self, monkeypatch):
-        """Test ruff_check_ci handles analyzer exception."""
+        """Test ruff_check_ci raises ToolError on analyzer exception."""
         mock_analyzer = Mock()
         mock_analyzer.check_code_for_ci.side_effect = RuntimeError("CI check failed")
         monkeypatch.setattr(server, "ruff_analyzer", mock_analyzer)
         monkeypatch.setattr(server, "ruff_available", True)
 
         fn = _get_fn(server.ruff_check_ci)
-        result = fn("code")
-        assert "error" in result
-        assert "RUFF CI check failed" in result["error"]
+        with pytest.raises(ToolError, match="RUFF CI check failed"):
+            fn("code")
 
     def test_ty_check_exception(self, monkeypatch):
-        """Test ty_check handles analyzer exception."""
+        """Test ty_check raises ToolError on analyzer exception."""
         mock_analyzer = Mock()
         mock_analyzer.check_code.side_effect = RuntimeError("Type check failed")
         monkeypatch.setattr(server, "ty_analyzer", mock_analyzer)
         monkeypatch.setattr(server, "ty_available", True)
 
         fn = _get_fn(server.ty_check)
-        result = fn("code")
-        assert "error" in result
-        assert "ty check failed" in result["error"]
+        with pytest.raises(ToolError, match="ty check failed"):
+            fn("code")
 
     def test_vulture_scan_exception(self, monkeypatch):
-        """Test vulture_scan handles analyzer exception."""
+        """Test vulture_scan raises ToolError on analyzer exception."""
         mock_analyzer = Mock()
         mock_analyzer.scan_code.side_effect = RuntimeError("Scan failed")
         monkeypatch.setattr(server, "vulture_analyzer", mock_analyzer)
         monkeypatch.setattr(server, "vulture_available", True)
 
         fn = _get_fn(server.vulture_scan)
-        result = fn("code")
-        assert "error" in result
-        assert "VULTURE scan failed" in result["error"]
+        with pytest.raises(ToolError, match="VULTURE scan failed"):
+            fn("code")
 
 
 class TestAnalyzeCodeErrorPaths:
     """Tests for analyze_code error handling."""
 
     def test_analyze_code_all_unavailable(self, monkeypatch):
-        """Test analyze_code when all analyzers unavailable."""
+        """Test analyze_code succeeds with zero results when all analyzers unavailable."""
         monkeypatch.setattr(server, "ruff_available", False)
         monkeypatch.setattr(server, "ty_available", False)
         monkeypatch.setattr(server, "vulture_available", False)
 
         fn = _get_fn(server.analyze_code)
         result = fn("code")
-        assert "summary" in result
-        assert result["summary"]["total_ruff_issues"] == 0
+        assert isinstance(result, AnalysisResult)
+        assert result.summary.total_ruff_issues == 0
 
     def test_analyze_code_ruff_only(self, monkeypatch):
         """Test analyze_code with only ruff available."""
@@ -155,19 +150,18 @@ class TestAnalyzeCodeErrorPaths:
 
         fn = _get_fn(server.analyze_code)
         result = fn("code")
-        assert result["summary"]["total_ruff_issues"] == 3
+        assert result.summary.total_ruff_issues == 3
 
     def test_analyze_code_exception(self, monkeypatch):
-        """Test analyze_code handles analyzer exception."""
+        """Test analyze_code raises ToolError on analyzer exception."""
         mock_ruff = Mock()
         mock_ruff.check_code.side_effect = RuntimeError("Failed")
         monkeypatch.setattr(server, "ruff_analyzer", mock_ruff)
         monkeypatch.setattr(server, "ruff_available", True)
 
         fn = _get_fn(server.analyze_code)
-        result = fn("code")
-        assert "error" in result
-        assert "Code analysis failed" in result["error"]
+        with pytest.raises(ToolError, match="Code analysis failed"):
+            fn("code")
 
 
 class TestTyAnalyzerErrors:
@@ -258,54 +252,47 @@ class TestServerNullAnalyzerGuards:
     """Tests for null analyzer type guards in tool functions."""
 
     def test_ruff_check_null_analyzer(self, monkeypatch):
-        """Test ruff_check handles None analyzer gracefully."""
+        """Test ruff_check raises ToolError when analyzer is None."""
         monkeypatch.setattr(server, "ruff_available", True)
         monkeypatch.setattr(server, "ruff_analyzer", None)
         fn = _get_fn(server.ruff_check)
-        result = fn("code")
-        assert "error" in result
-        assert "Internal error" in result["error"]
+        with pytest.raises(ToolError, match="not available"):
+            fn("code")
 
     def test_ruff_format_null_analyzer(self, monkeypatch):
-        """Test ruff_format handles None analyzer gracefully."""
+        """Test ruff_format raises ToolError when analyzer is None."""
         monkeypatch.setattr(server, "ruff_available", True)
         monkeypatch.setattr(server, "ruff_analyzer", None)
         fn = _get_fn(server.ruff_format)
-        result = fn("code")
-        assert "error" in result
-        assert "Internal error" in result["error"]
-        assert result["changed"] is False
+        with pytest.raises(ToolError, match="not available"):
+            fn("code")
 
     def test_ruff_check_ci_null_analyzer(self, monkeypatch):
-        """Test ruff_check_ci handles None analyzer gracefully."""
+        """Test ruff_check_ci raises ToolError when analyzer is None."""
         monkeypatch.setattr(server, "ruff_available", True)
         monkeypatch.setattr(server, "ruff_analyzer", None)
         fn = _get_fn(server.ruff_check_ci)
-        result = fn("code", "github")
-        assert "error" in result
-        assert "Internal error" in result["error"]
-        assert result["success"] is False
+        with pytest.raises(ToolError, match="not available"):
+            fn("code", "github")
 
     def test_ty_check_null_analyzer(self, monkeypatch):
-        """Test ty_check handles None analyzer gracefully."""
+        """Test ty_check raises ToolError when analyzer is None."""
         monkeypatch.setattr(server, "ty_available", True)
         monkeypatch.setattr(server, "ty_analyzer", None)
         fn = _get_fn(server.ty_check)
-        result = fn("code")
-        assert "error" in result
-        assert "Internal error" in result["error"]
+        with pytest.raises(ToolError, match="not available"):
+            fn("code")
 
     def test_vulture_scan_null_analyzer(self, monkeypatch):
-        """Test vulture_scan handles None analyzer gracefully."""
+        """Test vulture_scan raises ToolError when analyzer is None."""
         monkeypatch.setattr(server, "vulture_available", True)
         monkeypatch.setattr(server, "vulture_analyzer", None)
         fn = _get_fn(server.vulture_scan)
-        result = fn("code")
-        assert "error" in result
-        assert "Internal error" in result["error"]
+        with pytest.raises(ToolError, match="not available"):
+            fn("code")
 
     def test_analyze_code_null_analyzers(self, monkeypatch):
-        """Test analyze_code handles null analyzers gracefully."""
+        """Test analyze_code succeeds with empty results when all analyzers are None."""
         monkeypatch.setattr(server, "ruff_available", True)
         monkeypatch.setattr(server, "ruff_analyzer", None)
         monkeypatch.setattr(server, "ty_available", True)
@@ -314,10 +301,10 @@ class TestServerNullAnalyzerGuards:
         monkeypatch.setattr(server, "vulture_analyzer", None)
         fn = _get_fn(server.analyze_code)
         result = fn("code")
-        assert "error" not in result
-        assert result["summary"]["total_ruff_issues"] == 0
-        assert result["summary"]["total_ty_diagnostics"] == 0
-        assert result["summary"]["total_unused_items"] == 0
+        assert isinstance(result, AnalysisResult)
+        assert result.summary.total_ruff_issues == 0
+        assert result.summary.total_ty_diagnostics == 0
+        assert result.summary.total_unused_items == 0
 
 
 class TestToolErrorOnEmptyInput:
@@ -670,6 +657,51 @@ class TestTyAnalyzerEdgeCases:
         result = analyzer._parse_ty_output(output, str(real_file))
         assert result == []
 
+    def test_check_code_success(self, monkeypatch):
+        """Test check_code returns TyCheckResult with no diagnostics on clean code."""
+        mock_init = Mock(returncode=0, stdout="", stderr="")
+        mock_check = Mock(returncode=0, stdout="", stderr="")
+        call_count = [0]
+
+        def side_effect(*_args, **_kwargs):
+            call_count[0] += 1
+            return mock_init if call_count[0] == 1 else mock_check
+
+        monkeypatch.setattr(subprocess, "run", Mock(side_effect=side_effect))
+        analyzer = TyAnalyzer()
+        result = analyzer.check_code("x = 1")
+        assert isinstance(result, TyCheckResult)
+        assert result.total_diagnostics == 0
+
+    def test_check_code_file_not_found(self, monkeypatch):
+        """Test check_code raises RuntimeError when ty binary disappears at check time."""
+        mock_init = Mock(returncode=0, stdout="", stderr="")
+        call_count = [0]
+
+        def side_effect(*_args, **_kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return mock_init
+            raise FileNotFoundError("ty not found")
+
+        monkeypatch.setattr(subprocess, "run", Mock(side_effect=side_effect))
+        analyzer = TyAnalyzer()
+        with pytest.raises(RuntimeError, match="Failed to run ty"):
+            analyzer.check_code("x = 1")
+
+    def test_parse_ty_output_matching_line(self, monkeypatch, tmp_path):
+        """Test _parse_ty_output appends a diagnostic when the file matches."""
+        mock_result = Mock(returncode=0, stdout="", stderr="")
+        monkeypatch.setattr(subprocess, "run", Mock(return_value=mock_result))
+        analyzer = TyAnalyzer()
+        real_file = tmp_path / "myfile.py"
+        real_file.write_text("x: int = 'hello'\n")
+        output = f"{real_file}:1:1: error[invalid-assignment] type mismatch\n"
+        result = analyzer._parse_ty_output(output, str(real_file))
+        assert len(result) == 1
+        assert result[0].rule == "invalid-assignment"
+        assert result[0].severity == "error"
+
 
 class TestVultureAnalyzerEdgeCases:
     """Tests for VultureAnalyzer edge cases and error paths."""
@@ -832,3 +864,49 @@ class TestVultureAnalyzerEdgeCases:
         name, item_type = analyzer._extract_item_info("")
         assert name == "unknown"
         assert item_type == "unknown"
+
+    def test_parse_vulture_output_empty_line(self, monkeypatch, tmp_path):
+        """Test _parse_vulture_output skips empty lines without raising."""
+        mock_result = Mock(returncode=0, stdout="vulture 2.x\n", stderr="")
+        monkeypatch.setattr(subprocess, "run", Mock(return_value=mock_result))
+        analyzer = VultureAnalyzer()
+        real_file = tmp_path / "myfile.py"
+        result = analyzer._parse_vulture_output("\n\n   \n", str(real_file))
+        assert result == []
+
+
+class TestAnalyzeCodeHelpers:
+    """Tests for private helper functions in server.py analyze_code."""
+
+    def test_get_ty_result_with_available_analyzer(self, monkeypatch):
+        """Test _get_ty_result delegates to ty_analyzer when available."""
+        mock_ty = Mock()
+        mock_ty.check_code.return_value = TyCheckResult(
+            diagnostics=[], total_diagnostics=0, error_count=0, warning_count=0
+        )
+        monkeypatch.setattr(server, "ty_available", True)
+        monkeypatch.setattr(server, "ty_analyzer", mock_ty)
+        result = server._get_ty_result("x = 1", None)
+        assert isinstance(result, TyCheckResult)
+        assert result.total_diagnostics == 0
+
+    def test_get_vulture_result_with_available_analyzer(self, monkeypatch):
+        """Test _get_vulture_result delegates to vulture_analyzer when available."""
+        mock_vulture = Mock()
+        mock_vulture.scan_code.return_value = VultureScanResult(
+            unused_items=[], total_items=0, high_confidence_items=0
+        )
+        monkeypatch.setattr(server, "vulture_available", True)
+        monkeypatch.setattr(server, "vulture_analyzer", mock_vulture)
+        result = server._get_vulture_result("x = 1", 80)
+        assert isinstance(result, VultureScanResult)
+        assert result.total_items == 0
+
+    def test_analyze_code_propagates_tool_error(self, monkeypatch):
+        """Test analyze_code re-raises ToolError without wrapping in 'Code analysis failed'."""
+        monkeypatch.setattr(
+            server, "_get_ruff_result", Mock(side_effect=ToolError("inner error"))
+        )
+        fn = _get_fn(server.analyze_code)
+        with pytest.raises(ToolError, match="inner error"):
+            fn("x = 1")

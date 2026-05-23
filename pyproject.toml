@@ -95,53 +95,36 @@ target-version = "py313"
 line-length = 88
 
 [tool.ruff.lint]
-select = [
-    "E",
-    "F",
-    "W",
-    "C90",
-    "I",
-    "N",
-    "D",
-    "UP",
-    "B",
-    "A",
-    "C4",
-    "EM",
-    "FBT",
-    "ICN",
-    "G",
-    "PIE",
-    "T20",
-    "PT",
-    "RET",
-    "SIM",
-    "TID",
-    "TCH",
-    "ARG",
-    "PL",
-    "ERA",
-    "S",
-    "ISC",
-    "RUF",
-]
+select = ["ALL"]
 ignore = [
-    "E501",    # Line too long handled by formatter
-    "D100",    # Missing docstring in public module
-    "D101",    # Missing docstring in public class
-    "D102",    # Missing docstring in public method
-    "D103",    # Missing docstring in public function
-    "D104",    # Missing docstring in public package
-    "D107",    # Missing docstring in __init__
-    "D203",    # One blank line before class docstring (conflicts with D211)
-    "D212",    # Multi-line summary on first line (conflicts with D213 convention)
-    "D213",    # Multi-line docstring summary at second line (conflicts with D212)
-    "FBT001",  # Boolean positional argument — common in existing API
-    "FBT002",  # Boolean default positional argument
-    "S603",    # subprocess call with known executables (false positive for tool invocations)
-    "S607",    # Partial executable path — expected for ruff/ty/vulture tool calls
-    "EM101",   # String literal in exception — acceptable for short messages
-    "EM102",   # f-string literal in exception — acceptable for short messages
+    # Formatter handles these
+    "COM812",  # Missing trailing comma
+    "ISC001",  # Implicit string concat (single-line) — conflicts with formatter
+    "ISC002",  # Implicit string concat (multiline) — conflicts with formatter
+    "E501",    # Line too long — handled by formatter
+    # Docstrings — not enforced project-wide
+    "D100", "D101", "D102", "D103", "D104", "D107",
+    "D203",    # Blank line before class docstring (conflicts with D211)
+    "D212",    # Multi-line summary first line (conflicts with D213)
+    "D213",    # Multi-line summary second line (conflicts with D212)
+    # Type annotations
+    "ANN401",  # Disallow Any — FastMCP uses Any as a generic type parameter
+    # Boolean arguments — acceptable in existing API surface
+    "FBT001", "FBT002",
+    # Subprocess — legitimate for invoking ruff/ty/vulture
+    "S603",    # subprocess with known executables
+    "S607",    # Partial executable path
+    # Exception messages — short messages acceptable in tool handlers
+    "EM101", "EM102",
+    # Exception design — short RuntimeError messages are fine here
+    "TRY003",
+    # Copyright / metadata noise
+    "CPY001",
+    # TODO/FIXME markers — not enforced in this project
+    "TD002", "TD003",
+    "FIX001", "FIX002",
+    # Docstring completeness — not required
+    "DOC201", "DOC402", "DOC501",
 ]
 
 [tool.ruff.format]
@@ -149,8 +132,10 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.ruff.lint.per-file-ignores]
-"test_*.py" = ["PLR2004", "PLC0415", "S101", "D", "ARG"]
-"tests/**" = ["PLR2004", "PLC0415", "S101", "D", "ARG"]
+"test_*.py" = ["PLR2004", "PLC0415", "S101", "D", "ARG", "ANN", "SLF001"]
+"tests/**" = ["PLR2004", "PLC0415", "S101", "D", "ARG", "ANN", "SLF001"]
+"*/__main__.py" = ["EXE001"]  # shebang present but not executable is fine for installed scripts
+"*/server.py" = ["BLE001"]    # broad exception catch at main() entry point is intentional
 
 [tool.ty.environment]
 python-version = "3.13"

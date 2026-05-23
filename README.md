@@ -4,11 +4,12 @@
 
 [![CI/CD Pipeline](https://github.com/anselmoo/mcp-server-analyzer/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/anselmoo/mcp-server-analyzer/actions/workflows/ci-cd.yml)
 [![PyPI version](https://badge.fury.io/py/mcp-server-analyzer.svg)](https://badge.fury.io/py/mcp-server-analyzer)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-available-blue.svg)](https://github.com/anselmoo/mcp-server-analyzer/pkgs/container/mcp-server-analyzer)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code Coverage](https://codecov.io/gh/anselmoo/mcp-server-analyzer/branch/main/graph/badge.svg)](https://codecov.io/gh/anselmoo/mcp-server-analyzer)
 [![AgentSeal MCP](https://agentseal.org/api/v1/mcp/mcp-server-analyzer/badge)](https://agentseal.org/mcp/mcp-server-analyzer)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://anselmoo.github.io/mcp-server-analyzer/)
 
 
 A powerful [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that provides comprehensive Python code analysis using [**Ruff**](https://docs.astral.sh/ruff/) for linting, [**ty**](https://docs.astral.sh/ty/) for type checking, and [**Vulture**](https://github.com/jendrikseipp/vulture) for dead code detection. Perfect for AI assistants, IDEs, and automated code review workflows.
@@ -139,6 +140,21 @@ Add to your Zed settings.json:
 }
 ```
 
+### Claude Code (project-level)
+
+Place `.mcp.json` at your project root:
+
+```json
+{
+  "mcpServers": {
+    "analyzer": {
+      "command": "uvx",
+      "args": ["mcp-server-analyzer"]
+    }
+  }
+}
+```
+
 ## 🧪 Development
 
 ### Prerequisites
@@ -199,9 +215,19 @@ The server provides quality scoring based on:
 - **Trusted Publishing**: PyPI releases use GitHub OIDC trusted publishing
 - **Vulnerability Scanning**: Automated security scanning in CI/CD
 - **Supply Chain Security**: SLSA Build Level 3 compliance
+- **Security Policy**: See [SECURITY.md](SECURITY.md) for vulnerability reporting
+
+## 🔍 Data Handling & Transparency
+
+- **In-memory only**: Code passed to tools is written to a temporary file, analyzed, and the file is deleted immediately — nothing is persisted between calls.
+- **No network calls**: The server makes no outbound network connections during analysis.
+- **No telemetry**: No usage data, analytics, or crash reports are collected.
+- **Subprocess isolation**: ruff, ty, and vulture are invoked with fixed argument lists — no shell expansion or arbitrary command execution.
 
 ## 📚 Documentation
 
+- **[Full Documentation](https://anselmoo.github.io/mcp-server-analyzer/)** - GitHub Pages docs
+- **[Tools Reference](https://anselmoo.github.io/mcp-server-analyzer/tools/)** - Detailed tool parameters and return types
 - **[MCP Specification](https://modelcontextprotocol.io/)** - Learn about Model Context Protocol
 - **[FastMCP Framework](https://gofastmcp.com/)** - High-performance MCP implementation
 - **[Ruff Documentation](https://docs.astral.sh/ruff/)** - Python linter and formatter
@@ -210,11 +236,11 @@ The server provides quality scoring based on:
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
+3. Commit your changes using [Conventional Commits](https://www.conventionalcommits.org/)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 

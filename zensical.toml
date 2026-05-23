@@ -1,0 +1,74 @@
+[project]
+site_name = "MCP Server Analyzer"
+site_description = "MCP server for Python code analysis with Ruff, ty, and Vulture"
+site_author = "Anselm Hahn"
+site_url = "https://anselmoo.github.io/mcp-server-analyzer/"
+repo_url = "https://github.com/Anselmoo/mcp-server-analyzer"
+repo_name = "Anselmoo/mcp-server-analyzer"
+edit_uri = "edit/main/docs/"
+docs_dir = "docs"
+site_dir = "site"
+nav = [
+    {Home = "index.md"},
+    {"Tools Reference" = "tools.md"},
+    {Configuration = "configuration.md"},
+    {Development = "development.md"},
+    {Security = "security.md"},
+    {"CI/CD Setup" = "CICD_SETUP.md"},
+    {Changelog = "changelog.md"},
+]
+
+[project.theme]
+variant = "modern"
+features = [
+    "navigation.tabs",
+    "navigation.sections",
+    "navigation.top",
+    "navigation.instant",
+    "search.suggest",
+    "search.highlight",
+    "content.code.copy",
+    "content.tabs.link",
+    "content.action.edit",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "blue"
+accent = "blue"
+toggle.icon = "material/brightness-7"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "blue"
+accent = "blue"
+toggle.icon = "material/brightness-4"
+toggle.name = "Switch to light mode"
+
+[project.markdown_extensions]
+extensions = [
+    "pymdownx.highlight",
+    "pymdownx.superfences",
+    "pymdownx.tabbed",
+    "admonition",
+    "pymdownx.details",
+    "attr_list",
+    "md_in_html",
+    "tables",
+    "toc",
+]
+
+[project.markdown_extensions.config.pymdownx_highlight]
+anchor_linenums = true
+
+[project.markdown_extensions.config.pymdownx_tabbed]
+alternate_style = true
+
+[project.markdown_extensions.config.toc]
+permalink = true
+
+[project.plugins]
+plugins = ["search"]

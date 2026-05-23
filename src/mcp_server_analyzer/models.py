@@ -85,6 +85,29 @@ class VultureScanResult(BaseModel):
     )
 
 
+class RuffCICheckResult(BaseModel):
+    """Result of a RUFF CI/CD check operation."""
+
+    output: str = Field(description="Raw RUFF output in the requested format")
+    format: str = Field(description="Output format used (json, gitlab, github, sarif)")
+    success: bool = Field(description="Whether the check completed without errors")
+
+
+class AnalysisSummary(BaseModel):
+    """Summary statistics from a combined code analysis."""
+
+    total_ruff_issues: int = Field(description="Total number of RUFF linting issues")
+    fixable_ruff_issues: int = Field(description="Number of auto-fixable RUFF issues")
+    total_ty_diagnostics: int = Field(description="Total number of ty diagnostics")
+    ty_error_count: int = Field(description="Number of ty error diagnostics")
+    ty_warning_count: int = Field(description="Number of ty warning diagnostics")
+    total_unused_items: int = Field(description="Total unused code items from VULTURE")
+    high_confidence_unused: int = Field(
+        description="Unused items with confidence >= 80"
+    )
+    code_quality_score: int = Field(description="Combined quality score (0-100)")
+
+
 class AnalysisResult(BaseModel):
     """Combined analysis result from the available analyzers."""
 
@@ -93,4 +116,4 @@ class AnalysisResult(BaseModel):
     vulture_result: VultureScanResult = Field(
         description="VULTURE dead code detection results"
     )
-    summary: dict[str, int] = Field(description="Summary statistics of the analysis")
+    summary: AnalysisSummary = Field(description="Summary statistics of the analysis")

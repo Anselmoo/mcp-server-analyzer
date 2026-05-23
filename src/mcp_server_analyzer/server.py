@@ -13,7 +13,10 @@ from mcp.types import ToolAnnotations
 from mcp_server_analyzer.analyzers import RuffAnalyzer, TyAnalyzer, VultureAnalyzer
 from mcp_server_analyzer.models import (
     AnalysisResult,
+    AnalysisSummary,
     RuffCheckResult,
+    RuffCICheckResult,
+    RuffFormatResult,
     TyCheckResult,
     VultureScanResult,
 )
@@ -27,7 +30,7 @@ app = mcp  # backward-compat alias
 try:
     ruff_analyzer: RuffAnalyzer | None = RuffAnalyzer()
     ruff_available = True
-except RuntimeError as e:
+except RuntimeError as e:  # pragma: no cover
     logger.warning("ruff not available: %s", e)
     ruff_analyzer = None
     ruff_available = False
@@ -35,7 +38,7 @@ except RuntimeError as e:
 try:
     ty_analyzer: TyAnalyzer | None = TyAnalyzer()
     ty_available = True
-except RuntimeError as e:
+except RuntimeError as e:  # pragma: no cover
     logger.warning("ty not available: %s", e)
     ty_analyzer = None
     ty_available = False
@@ -43,7 +46,7 @@ except RuntimeError as e:
 try:
     vulture_analyzer: VultureAnalyzer | None = VultureAnalyzer()
     vulture_available = True
-except RuntimeError as e:
+except RuntimeError as e:  # pragma: no cover
     logger.warning("VULTURE not available: %s", e)
     vulture_analyzer = None
     vulture_available = False
@@ -102,7 +105,7 @@ def get_analyzer_versions() -> str:
     tags={"linting", "ruff"},
     annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True),
 )
-def ruff_check(code: str, config_path: str | None = None) -> dict[str, Any]:
+def ruff_check(code: str, config_path: str | None = None) -> RuffCheckResult:
     """
     Lint Python code using RUFF to identify style violations and potential errors.
 
@@ -111,35 +114,17 @@ def ruff_check(code: str, config_path: str | None = None) -> dict[str, Any]:
         config_path: Optional path to RUFF configuration file
 
     Returns:
-        Dictionary containing linting results with issues, counts, and metadata
+        RuffCheckResult containing linting issues, counts, and metadata
 
     """
     if not code.strip():
         raise ToolError("Input code must not be empty.")
-    if not ruff_available:
-        return {
-            "error": "ruff is not available - please install the ruff package",
-            "issues": [],
-            "total_issues": 0,
-            "fixable_issues": 0,
-        }
-    if ruff_analyzer is None:
-        return {
-            "error": "Internal error: ruff_analyzer is None despite ruff_available being True",
-            "issues": [],
-            "total_issues": 0,
-            "fixable_issues": 0,
-        }
+    if not ruff_available or ruff_analyzer is None:
+        raise ToolError("ruff is not available — please install the ruff package")
     try:
-        result = ruff_analyzer.check_code(code, config_path)
-        return result.model_dump()
+        return ruff_analyzer.check_code(code, config_path)
     except Exception as e:
-        return {
-            "error": f"RUFF check failed: {e!s}",
-            "issues": [],
-            "total_issues": 0,
-            "fixable_issues": 0,
-        }
+        raise ToolError(f"RUFF check failed: {e!s}") from e
 
 
 @mcp.tool(
@@ -147,7 +132,7 @@ def ruff_check(code: str, config_path: str | None = None) -> dict[str, Any]:
     tags={"linting", "ruff"},
     annotations=ToolAnnotations(readOnlyHint=False, idempotentHint=True),
 )
-def ruff_format(code: str, config_path: str | None = None) -> dict[str, Any]:
+def ruff_format(code: str, config_path: str | None = None) -> RuffFormatResult:
     """
     Format Python code using RUFF's fast formatter.
 
@@ -156,32 +141,17 @@ def ruff_format(code: str, config_path: str | None = None) -> dict[str, Any]:
         config_path: Optional path to RUFF configuration file
 
     Returns:
-        Dictionary containing formatted code and change status
+        RuffFormatResult containing formatted code and change status
 
     """
     if not code.strip():
         raise ToolError("Input code must not be empty.")
-    if not ruff_available:
-        return {
-            "error": "ruff is not available - please install the ruff package",
-            "formatted_code": code,
-            "changed": False,
-        }
-    if ruff_analyzer is None:
-        return {
-            "error": "Internal error: ruff_analyzer is None despite ruff_available being True",
-            "formatted_code": code,
-            "changed": False,
-        }
+    if not ruff_available or ruff_analyzer is None:
+        raise ToolError("ruff is not available — please install the ruff package")
     try:
-        result = ruff_analyzer.format_code(code, config_path)
-        return result.model_dump()
+        return ruff_analyzer.format_code(code, config_path)
     except Exception as e:
-        return {
-            "error": f"RUFF format failed: {e!s}",
-            "formatted_code": code,
-            "changed": False,
-        }
+        raise ToolError(f"RUFF format failed: {e!s}") from e
 
 
 @mcp.tool(
@@ -191,7 +161,7 @@ def ruff_format(code: str, config_path: str | None = None) -> dict[str, Any]:
 )
 def ruff_check_ci(
     code: str, output_format: str = "json", config_path: str | None = None
-) -> dict[str, Any]:
+) -> RuffCICheckResult:
     """
     Run RUFF linter with CI/CD-specific output formats.
 
@@ -201,39 +171,18 @@ def ruff_check_ci(
         config_path: Optional path to RUFF configuration file
 
     Returns:
-        Dictionary containing raw RUFF output in specified format
+        RuffCICheckResult containing raw RUFF output in specified format
 
     """
     if not code.strip():
         raise ToolError("Input code must not be empty.")
-    if not ruff_available:
-        return {
-            "error": "ruff is not available - please install the ruff package",
-            "output": "",
-            "format": output_format,
-            "success": False,
-        }
-    if ruff_analyzer is None:
-        return {
-            "error": "Internal error: ruff_analyzer is None despite ruff_available being True",
-            "output": "",
-            "format": output_format,
-            "success": False,
-        }
+    if not ruff_available or ruff_analyzer is None:
+        raise ToolError("ruff is not available — please install the ruff package")
     try:
-        result = ruff_analyzer.check_code_for_ci(code, output_format, config_path)
-        return {
-            "output": result,
-            "format": output_format,
-            "success": True,
-        }
+        output = ruff_analyzer.check_code_for_ci(code, output_format, config_path)
+        return RuffCICheckResult(output=output, format=output_format, success=True)
     except Exception as e:
-        return {
-            "error": f"RUFF CI check failed: {e!s}",
-            "output": "",
-            "format": output_format,
-            "success": False,
-        }
+        raise ToolError(f"RUFF CI check failed: {e!s}") from e
 
 
 @mcp.tool(
@@ -241,7 +190,7 @@ def ruff_check_ci(
     tags={"type-checking", "ty"},
     annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True),
 )
-def ty_check(code: str, project_path: str | None = None) -> dict[str, Any]:
+def ty_check(code: str, project_path: str | None = None) -> TyCheckResult:
     """
     Type-check Python code using ty.
 
@@ -250,38 +199,17 @@ def ty_check(code: str, project_path: str | None = None) -> dict[str, Any]:
         project_path: Optional project directory used for ty config and import resolution
 
     Returns:
-        Dictionary containing type diagnostics and counts
+        TyCheckResult containing type diagnostics and counts
 
     """
     if not code.strip():
         raise ToolError("Input code must not be empty.")
-    if not ty_available:
-        return {
-            "error": "ty is not available - please install the ty package",
-            "diagnostics": [],
-            "total_diagnostics": 0,
-            "error_count": 0,
-            "warning_count": 0,
-        }
-    if ty_analyzer is None:
-        return {
-            "error": "Internal error: ty_analyzer is None despite ty_available being True",
-            "diagnostics": [],
-            "total_diagnostics": 0,
-            "error_count": 0,
-            "warning_count": 0,
-        }
+    if not ty_available or ty_analyzer is None:
+        raise ToolError("ty is not available — please install the ty package")
     try:
-        result = ty_analyzer.check_code(code, project_path)
-        return result.model_dump()
+        return ty_analyzer.check_code(code, project_path)
     except Exception as e:
-        return {
-            "error": f"ty check failed: {e!s}",
-            "diagnostics": [],
-            "total_diagnostics": 0,
-            "error_count": 0,
-            "warning_count": 0,
-        }
+        raise ToolError(f"ty check failed: {e!s}") from e
 
 
 @mcp.tool(
@@ -289,7 +217,7 @@ def ty_check(code: str, project_path: str | None = None) -> dict[str, Any]:
     tags={"dead-code", "vulture"},
     annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True),
 )
-def vulture_scan(code: str, min_confidence: int = 80) -> dict[str, Any]:
+def vulture_scan(code: str, min_confidence: int = 80) -> VultureScanResult:
     """
     Detect dead/unused code using VULTURE.
 
@@ -298,35 +226,17 @@ def vulture_scan(code: str, min_confidence: int = 80) -> dict[str, Any]:
         min_confidence: Minimum confidence level (0-100) for reporting items
 
     Returns:
-        Dictionary containing unused code items with confidence scores and locations
+        VultureScanResult containing unused code items with confidence scores
 
     """
     if not code.strip():
         raise ToolError("Input code must not be empty.")
-    if not vulture_available:
-        return {
-            "error": "VULTURE is not available - please install vulture package",
-            "unused_items": [],
-            "total_items": 0,
-            "high_confidence_items": 0,
-        }
-    if vulture_analyzer is None:
-        return {
-            "error": "Internal error: vulture_analyzer is None despite vulture_available being True",
-            "unused_items": [],
-            "total_items": 0,
-            "high_confidence_items": 0,
-        }
+    if not vulture_available or vulture_analyzer is None:
+        raise ToolError("VULTURE is not available — please install the vulture package")
     try:
-        result = vulture_analyzer.scan_code(code, min_confidence)
-        return result.model_dump()
+        return vulture_analyzer.scan_code(code, min_confidence)
     except Exception as e:
-        return {
-            "error": f"VULTURE scan failed: {e!s}",
-            "unused_items": [],
-            "total_items": 0,
-            "high_confidence_items": 0,
-        }
+        raise ToolError(f"VULTURE scan failed: {e!s}") from e
 
 
 def _get_ruff_result(code: str, config_path: str | None) -> RuffCheckResult:
@@ -366,7 +276,7 @@ def analyze_code(
     ruff_config_path: str | None = None,
     min_confidence: int = 80,
     project_path: str | None = None,
-) -> dict[str, Any]:
+) -> AnalysisResult:
     """
     Comprehensive analysis combining Ruff linting, ty type checking, and Vulture dead code detection.
 
@@ -377,7 +287,7 @@ def analyze_code(
         project_path: Optional project directory used by ty for config and import resolution
 
     Returns:
-        Dictionary containing combined analysis results with summary statistics
+        AnalysisResult containing combined results with summary statistics and quality score
 
     """
     if not code.strip():
@@ -387,56 +297,30 @@ def analyze_code(
         ty_result = _get_ty_result(code, project_path)
         vulture_result = _get_vulture_result(code, min_confidence)
 
-        summary = {
-            "total_ruff_issues": ruff_result.total_issues,
-            "fixable_ruff_issues": ruff_result.fixable_issues,
-            "total_ty_diagnostics": ty_result.total_diagnostics,
-            "ty_error_count": ty_result.error_count,
-            "ty_warning_count": ty_result.warning_count,
-            "total_unused_items": vulture_result.total_items,
-            "high_confidence_unused": vulture_result.high_confidence_items,
-            "code_quality_score": _calculate_quality_score(
+        summary = AnalysisSummary(
+            total_ruff_issues=ruff_result.total_issues,
+            fixable_ruff_issues=ruff_result.fixable_issues,
+            total_ty_diagnostics=ty_result.total_diagnostics,
+            ty_error_count=ty_result.error_count,
+            ty_warning_count=ty_result.warning_count,
+            total_unused_items=vulture_result.total_items,
+            high_confidence_unused=vulture_result.high_confidence_items,
+            code_quality_score=_calculate_quality_score(
                 ruff_result, ty_result, vulture_result
             ),
-        }
+        )
 
-        analysis = AnalysisResult(
+        return AnalysisResult(
             ruff_result=ruff_result,
             ty_result=ty_result,
             vulture_result=vulture_result,
             summary=summary,
         )
 
-        return analysis.model_dump()
-
     except ToolError:
         raise
     except Exception as e:
-        return {
-            "error": f"Code analysis failed: {e!s}",
-            "ruff_result": {"issues": [], "total_issues": 0, "fixable_issues": 0},
-            "ty_result": {
-                "diagnostics": [],
-                "total_diagnostics": 0,
-                "error_count": 0,
-                "warning_count": 0,
-            },
-            "vulture_result": {
-                "unused_items": [],
-                "total_items": 0,
-                "high_confidence_items": 0,
-            },
-            "summary": {
-                "total_ruff_issues": 0,
-                "fixable_ruff_issues": 0,
-                "total_ty_diagnostics": 0,
-                "ty_error_count": 0,
-                "ty_warning_count": 0,
-                "total_unused_items": 0,
-                "high_confidence_unused": 0,
-                "code_quality_score": 0,
-            },
-        }
+        raise ToolError(f"Code analysis failed: {e!s}") from e
 
 
 def _calculate_quality_score(
@@ -465,10 +349,10 @@ def main() -> None:
     except KeyboardInterrupt:
         logger.info("Server stopped by user")
         sys.exit(0)
-    except Exception as e:
-        logger.error("Server error: %s", e)
+    except Exception:
+        logger.exception("Server error")
         sys.exit(1)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()
