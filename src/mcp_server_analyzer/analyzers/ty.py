@@ -42,6 +42,7 @@ class TyAnalyzer:
 
         Returns:
             TyCheckResult containing diagnostics
+
         """
         resolved_project_path = (
             Path(project_path).resolve() if project_path else Path.cwd()
@@ -109,6 +110,7 @@ class TyAnalyzer:
 
         Returns:
             List of TyDiagnostic objects
+
         """
         diagnostics: list[TyDiagnostic] = []
         pattern = re.compile(

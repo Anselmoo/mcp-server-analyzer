@@ -46,6 +46,7 @@ class VultureAnalyzer:
 
         Returns:
             VultureScanResult containing unused code items
+
         """
         if not 0 <= min_confidence <= 100:  # noqa: PLR2004
             raise ValueError("min_confidence must be between 0 and 100")
@@ -116,6 +117,7 @@ class VultureAnalyzer:
 
         Returns:
             List of VultureItem objects
+
         """
         items: list[VultureItem] = []
         # VULTURE output format: filename:line: message (confidence%, size info)
@@ -163,6 +165,7 @@ class VultureAnalyzer:
 
         Returns:
             Tuple of (item_name, item_type)
+
         """
         # Common VULTURE message patterns
         patterns = [

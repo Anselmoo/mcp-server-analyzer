@@ -2,11 +2,11 @@
 
 [project]
 name = "mcp-server-analyzer"
-version = "0.1.2"
+version = "0.2.0"
 description = "MCP server for Python code analysis with Ruff linting, ty type checking, and Vulture dead code detection"
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 authors = [{ name = "Anselm Hahn", email = "anselm.hahn@gmail.com" }]
 maintainers = [{ name = "Anselm Hahn", email = "anselm.hahn@gmail.com" }]
 keywords = [
@@ -25,14 +25,13 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Quality Assurance",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "fastmcp>=0.3.0",
+    "fastmcp>=2.0.0",
     "ruff>=0.8.0",
     "ty>=0.0.33",
     "vulture>=2.11",
@@ -45,10 +44,11 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
     "ty>=0.0.33",
-    "black>=23.0.0",
     "bandit>=1.7.0",
     "safety>=2.0.0",
     "pre-commit>=3.0.0",
+    "poethepoet>=0.25.0",
+    "repo-release-tools>=1.6.2",
 ]
 test = ["pytest>=8.4.1", "pytest-asyncio>=0.21.0", "pytest-cov>=4.0.0"]
 
@@ -60,23 +60,13 @@ Homepage = "https://github.com/anselmoo/mcp-server-analyzer"
 Documentation = "https://github.com/anselmoo/mcp-server-analyzer"
 Repository = "https://github.com/anselmoo/mcp-server-analyzer"
 Issues = "https://github.com/anselmoo/mcp-server-analyzer/issues"
+Changelog = "https://github.com/anselmoo/mcp-server-analyzer/blob/main/CHANGELOG.md"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.9.26,<0.12.0"]
+build-backend = "uv_build"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/mcp_server_analyzer"]
-
-[tool.hatch.envs.default]
-dependencies = [
-    "pytest>=8.4.1",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0",
-    "ty>=0.0.33",
-]
-
-[tool.hatch.envs.default.scripts]
+[tool.poe.tasks]
 test = "pytest"
 test-cov = "pytest --cov=src/mcp_server_analyzer --cov-report=xml --cov-report=html"
 type-check = "ty check src tests"
@@ -84,8 +74,24 @@ lint = "ruff check src tests"
 format = "ruff format src tests"
 format-check = "ruff format --check src tests"
 
+[tool.rrt]
+pin_target_missing = "warn"
+
+[[tool.rrt.version_targets]]
+path = "pyproject.toml"
+kind = "pep621"
+
+[[tool.rrt.version_targets]]
+path = "src/mcp_server_analyzer/__init__.py"
+kind = "python_version"
+
+[tool.rrt.eol]
+languages = ["python"]
+warn_days = 180
+error_days = 0
+
 [tool.ruff]
-target-version = "py310"
+target-version = "py313"
 line-length = 88
 
 [tool.ruff.lint]
@@ -96,31 +102,58 @@ select = [
     "C90",
     "I",
     "N",
+    "D",
     "UP",
     "B",
     "A",
     "C4",
+    "EM",
+    "FBT",
+    "ICN",
+    "G",
     "PIE",
     "T20",
     "PT",
     "RET",
     "SIM",
     "TID",
+    "TCH",
     "ARG",
     "PL",
+    "ERA",
+    "S",
+    "ISC",
     "RUF",
 ]
-ignore = ["E501"] # Line too long handled by formatter
+ignore = [
+    "E501",    # Line too long handled by formatter
+    "D100",    # Missing docstring in public module
+    "D101",    # Missing docstring in public class
+    "D102",    # Missing docstring in public method
+    "D103",    # Missing docstring in public function
+    "D104",    # Missing docstring in public package
+    "D107",    # Missing docstring in __init__
+    "D203",    # One blank line before class docstring (conflicts with D211)
+    "D212",    # Multi-line summary on first line (conflicts with D213 convention)
+    "D213",    # Multi-line docstring summary at second line (conflicts with D212)
+    "FBT001",  # Boolean positional argument — common in existing API
+    "FBT002",  # Boolean default positional argument
+    "S603",    # subprocess call with known executables (false positive for tool invocations)
+    "S607",    # Partial executable path — expected for ruff/ty/vulture tool calls
+    "EM101",   # String literal in exception — acceptable for short messages
+    "EM102",   # f-string literal in exception — acceptable for short messages
+]
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 
 [tool.ruff.lint.per-file-ignores]
-"test_*.py" = ["PLR2004", "PLC0415"]
+"test_*.py" = ["PLR2004", "PLC0415", "S101", "D", "ARG"]
+"tests/**" = ["PLR2004", "PLC0415", "S101", "D", "ARG"]
 
 [tool.ty.environment]
-python-version = "3.10"
+python-version = "3.13"
 root = ["./src"]
 
 [tool.ty.src]
@@ -130,13 +163,12 @@ include = ["src", "tests"]
 output-format = "concise"
 
 [tool.vulture]
-# VULTURE configuration for dead code detection
 min_confidence = 80
 sort_by_size = true
 paths = ["src/"]
 exclude = ["tests/", ".venv/", "__pycache__/"]
 ignore_names = ["_*", "test_*"]
-ignore_decorators = ["@pytest.fixture", "@app.tool"]
+ignore_decorators = ["@pytest.fixture", "@mcp.tool", "@mcp.resource"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -160,8 +192,9 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=6.2.1",
     "ty>=0.0.33",
-    "black>=23.0.0",
     "bandit>=1.7.0",
     "safety>=2.0.0",
     "pre-commit>=3.0.0",
+    "poethepoet>=0.25.0",
+    "repo-release-tools>=1.6.2",
 ]
