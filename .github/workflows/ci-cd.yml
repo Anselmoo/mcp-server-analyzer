@@ -362,7 +362,7 @@ jobs:
           path: sbom/
 
       - name: Sign artifacts with Sigstore
-        uses: sigstore/gh-action-sigstore-python@v3
+        uses: sigstore/gh-action-sigstore-python@v3.3.0
         with:
           inputs: >-
             ./dist/*.tar.gz
@@ -372,9 +372,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          VERSION=${GITHUB_REF_NAME#v}
-          gh release create "${GITHUB_REF_NAME}" \
-            --repo "${{ github.repository }}" \
-            --title "Release ${GITHUB_REF_NAME}" \
-            --generate-notes \
-            dist/** sbom/**
+          if gh release view "${GITHUB_REF_NAME}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" \
+              --repo "${{ github.repository }}" \
+              --clobber \
+              dist/** sbom/**
+          else
+            gh release create "${GITHUB_REF_NAME}" \
+              --repo "${{ github.repository }}" \
+              --title "Release ${GITHUB_REF_NAME}" \
+              --generate-notes \
+              dist/** sbom/**
+          fi
