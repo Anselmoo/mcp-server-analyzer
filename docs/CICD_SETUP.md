@@ -110,6 +110,7 @@ Images will be available at: `ghcr.io/anselmoo/mcp-server-analyzer`
 - ✅ **All main branch steps** +
 - ✅ **Publish to PyPI**: Production package release
 - ✅ **GitHub Release**: Create release with signed artifacts
+- ✅ **Rerun-safe Release Assets**: If the release already exists, assets are updated in place
 - ✅ **Docker Latest Tag**: Update latest container image
 
 ## 🔍 Monitoring & Debugging
