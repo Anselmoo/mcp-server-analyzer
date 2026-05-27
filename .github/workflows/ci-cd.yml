@@ -374,7 +374,19 @@ jobs:
         run: |
           set -euo pipefail
 
-          assets=(dist/*.tar.gz dist/*.whl sbom/sbom.spdx.json)
+          mapfile -t assets < <(
+            find dist sbom \
+              -maxdepth 1 \
+              -type f \
+              \( -name '*.whl' -o -name '*.tar.gz' -o -name 'sbom.spdx.json' \) \
+              -print \
+              | sort
+          )
+
+          if [ "${#assets[@]}" -eq 0 ]; then
+            echo "No release assets were found."
+            exit 1
+          fi
 
           if gh release view "${GITHUB_REF_NAME}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
             while IFS= read -r asset_name; do

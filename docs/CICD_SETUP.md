@@ -209,7 +209,7 @@ Use semantic versioning for releases:
 9. ✅ Announce release
 
 If you rerun the release workflow for the same tag, the existing GitHub Release assets are
-pruned and uploaded again so the published release always matches the latest build outputs.
+removed and uploaded again so the published release always matches the latest build outputs.
 
 ## 🎯 Next Steps
 
