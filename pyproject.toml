@@ -74,6 +74,7 @@ type-check = "ty check src tests"
 lint = "ruff check src tests"
 format = "ruff format src tests"
 format-check = "ruff format --check src tests"
+build_mcpb = { cmd = "python scripts/build_mcpb.py", help = "Build .mcpb release bundle into dist/ (gitignored)" }
 
 [tool.rrt]
 pin_target_missing = "warn"
@@ -146,6 +147,7 @@ indent-style = "space"
 [tool.ruff.lint.per-file-ignores]
 "test_*.py" = ["PLR2004", "PLC0415", "S101", "D", "ARG", "ANN", "SLF001"]
 "tests/**" = ["PLR2004", "PLC0415", "S101", "D", "ARG", "ANN", "SLF001"]
+"scripts/**" = ["INP001", "T201", "D", "ANN", "S"]
 "*/__main__.py" = [
     "EXE001",
 ] # shebang present but not executable is fine for installed scripts
