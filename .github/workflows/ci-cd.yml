@@ -401,7 +401,7 @@ jobs:
           path: dist/
 
       - name: Sign artifacts with Sigstore
-        uses: sigstore/gh-action-sigstore-python@v3.3.0
+        uses: sigstore/gh-action-sigstore-python@04cffa1d795717b140764e8b640de88853c92acc
         with:
           inputs: >-
             ./dist/*.tar.gz
@@ -411,15 +411,43 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
+
+          mapfile -t assets < <(
+            find dist sbom \
+              -maxdepth 1 \
+              -type f \
+              \( -name '*.whl' -o -name '*.tar.gz' -o -name 'sbom.spdx.json' \) \
+              -print \
+              | sort
+          )
+
+          if [ "${#assets[@]}" -eq 0 ]; then
+            echo "No release assets were found."
+            exit 1
+          fi
+
           if gh release view "${GITHUB_REF_NAME}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            while IFS= read -r asset_name; do
+              [ -n "${asset_name}" ] || continue
+              gh release delete-asset "${GITHUB_REF_NAME}" "${asset_name}" \
+                --repo "${{ github.repository }}" \
+                --yes
+            done < <(
+              gh release view "${GITHUB_REF_NAME}" \
+                --repo "${{ github.repository }}" \
+                --json assets \
+                --jq '.assets[].name'
+            )
+
             gh release upload "${GITHUB_REF_NAME}" \
               --repo "${{ github.repository }}" \
               --clobber \
-              dist/** sbom/**
+              "${assets[@]}"
           else
             gh release create "${GITHUB_REF_NAME}" \
               --repo "${{ github.repository }}" \
               --title "Release ${GITHUB_REF_NAME}" \
               --generate-notes \
-              dist/** sbom/**
+              "${assets[@]}"
           fi

@@ -110,7 +110,7 @@ Images will be available at: `ghcr.io/anselmoo/mcp-server-analyzer`
 - ✅ **All main branch steps** +
 - ✅ **Publish to PyPI**: Production package release
 - ✅ **GitHub Release**: Create release with signed artifacts
-- ✅ **Rerun-safe Release Assets**: If the release already exists, assets are updated in place
+- ✅ **Rerun-safe Release Assets**: Existing assets are deleted and replaced on reruns so releases stay in sync
 - ✅ **Docker Latest Tag**: Update latest container image
 
 ## 🔍 Monitoring & Debugging
@@ -207,6 +207,9 @@ Use semantic versioning for releases:
 7. ✅ Verify PyPI release
 8. ✅ Test Docker image
 9. ✅ Announce release
+
+If you rerun the release workflow for the same tag, the existing GitHub Release assets are
+removed and uploaded again so the published release always matches the latest build outputs.
 
 ## 🎯 Next Steps
 
