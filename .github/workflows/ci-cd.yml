@@ -187,7 +187,7 @@ jobs:
           path: dist/
 
       - name: Build .mcpb bundle
-        uses: Anselmoo/mcp2mcpb@v0.5
+        uses: Anselmoo/mcp2mcpb@b040babc466902b721e2367d2e5611908c3603d8
         with:
           package: mcp-server-analyzer
           registry: pypi
