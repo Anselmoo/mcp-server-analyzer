@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-06-22
+
+### Added
+- add .mcpb DXT v0.4 bundle build and GitHub Release attachment (#20)
+
 ## [0.2.1] - 2026-05-24
 
 ### Added
