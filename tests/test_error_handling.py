@@ -62,6 +62,20 @@ class TestServerToolsUnavailable:
         with pytest.raises(ToolError, match="not available"):
             fn("code")
 
+    def test_biome_check_unavailable(self, monkeypatch):
+        """Test biome_check raises ToolError when unavailable."""
+        monkeypatch.setattr(server, "biome_available", False)
+        fn = _get_fn(server.biome_check)
+        with pytest.raises(ToolError, match="not available"):
+            fn("const x = 1;")
+
+    def test_biome_format_unavailable(self, monkeypatch):
+        """Test biome_format raises ToolError when unavailable."""
+        monkeypatch.setattr(server, "biome_available", False)
+        fn = _get_fn(server.biome_format)
+        with pytest.raises(ToolError, match="not available"):
+            fn("const x = 1;")
+
 
 class TestServerToolsExceptions:
     """Tests for tool functions handling analyzer exceptions."""
@@ -120,6 +134,28 @@ class TestServerToolsExceptions:
         fn = _get_fn(server.vulture_scan)
         with pytest.raises(ToolError, match="VULTURE scan failed"):
             fn("code")
+
+    def test_biome_check_exception(self, monkeypatch):
+        """Test biome_check raises ToolError on analyzer exception."""
+        mock_analyzer = Mock()
+        mock_analyzer.check_code.side_effect = RuntimeError("Check failed")
+        monkeypatch.setattr(server, "biome_analyzer", mock_analyzer)
+        monkeypatch.setattr(server, "biome_available", True)
+
+        fn = _get_fn(server.biome_check)
+        with pytest.raises(ToolError, match="Biome check failed"):
+            fn("const x = 1;")
+
+    def test_biome_format_exception(self, monkeypatch):
+        """Test biome_format raises ToolError on analyzer exception."""
+        mock_analyzer = Mock()
+        mock_analyzer.format_code.side_effect = RuntimeError("Format failed")
+        monkeypatch.setattr(server, "biome_analyzer", mock_analyzer)
+        monkeypatch.setattr(server, "biome_available", True)
+
+        fn = _get_fn(server.biome_format)
+        with pytest.raises(ToolError, match="Biome format failed"):
+            fn("const x = 1;")
 
 
 class TestAnalyzeCodeErrorPaths:
@@ -369,6 +405,18 @@ class TestToolErrorOnEmptyInput:
         fn = _get_fn(server.vulture_scan)
         with pytest.raises(ToolError, match="must not be empty"):
             fn("  \t  ")
+
+    def test_biome_check_empty_input(self):
+        """Test biome_check raises ToolError on empty input."""
+        fn = _get_fn(server.biome_check)
+        with pytest.raises(ToolError, match="must not be empty"):
+            fn("")
+
+    def test_biome_format_empty_input(self):
+        """Test biome_format raises ToolError on empty input."""
+        fn = _get_fn(server.biome_format)
+        with pytest.raises(ToolError, match="must not be empty"):
+            fn("")
 
     def test_analyze_code_empty_input(self):
         """Test analyze_code raises ToolError on empty input."""

@@ -27,6 +27,8 @@ async def test_list_tools(client):
         "ruff-check-ci",
         "ty-check",
         "vulture-scan",
+        "biome-check",
+        "biome-format",
         "analyze-code",
     }
     assert expected == tool_names
