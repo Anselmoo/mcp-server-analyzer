@@ -31,6 +31,18 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Node.js dependencies (Biome)
+        run: npm ci
+
+      - name: Add node_modules/.bin to PATH
+        run: echo "${{ github.workspace }}/node_modules/.bin" >> $GITHUB_PATH
+
       - name: Run pre-commit
         run: uv run pre-commit run --all-files --show-diff-on-failure
 
@@ -65,6 +77,18 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --all-extras
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Node.js dependencies (Biome)
+        run: npm ci
+
+      - name: Add node_modules/.bin to PATH
+        run: echo "${{ github.workspace }}/node_modules/.bin" >> $GITHUB_PATH
 
       - name: Run tests with coverage
         env:
@@ -401,7 +425,7 @@ jobs:
           path: dist/
 
       - name: Sign artifacts with Sigstore
-        uses: sigstore/gh-action-sigstore-python@v3.3.0
+        uses: sigstore/gh-action-sigstore-python@04cffa1d795717b140764e8b640de88853c92acc  # v3.3.0
         with:
           inputs: >-
             ./dist/*.tar.gz
