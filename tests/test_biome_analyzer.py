@@ -228,6 +228,36 @@ def test_check_code_file_not_found(monkeypatch: Any) -> None:
         analyzer.check_code("const x = 1;\n")
 
 
+def test_check_code_permission_error(monkeypatch: Any) -> None:
+    call_count = [0]
+
+    def fake_run(*args: Any, **kwargs: Any) -> FakeCompletedProcess:
+        call_count[0] += 1
+        if call_count[0] == 1:
+            return FakeCompletedProcess(0, "biome 2.0.0")
+        raise PermissionError("permission denied")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    analyzer = BiomeAnalyzer()
+    with pytest.raises(RuntimeError, match="Failed to run Biome"):
+        analyzer.check_code("const x = 1;\n")
+
+
+def test_format_code_permission_error(monkeypatch: Any) -> None:
+    call_count = [0]
+
+    def fake_run(*args: Any, **kwargs: Any) -> FakeCompletedProcess:
+        call_count[0] += 1
+        if call_count[0] == 1:
+            return FakeCompletedProcess(0, "biome 2.0.0")
+        raise PermissionError("permission denied")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    analyzer = BiomeAnalyzer()
+    with pytest.raises(RuntimeError, match="Failed to run Biome"):
+        analyzer.format_code("const x = 1;\n")
+
+
 def test_check_code_missing_location_fields(monkeypatch: Any) -> None:
     """Diagnostic with missing/null location fields handled gracefully."""
     diagnostic = {

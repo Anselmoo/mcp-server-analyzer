@@ -105,7 +105,7 @@ class BiomeAnalyzer:
         stdout = result.stdout.strip()
         if stdout and stdout != code.strip():
             try:
-                output = json.loads(result.stdout)
+                output = json.loads(stdout)
             except json.JSONDecodeError as e:
                 raise RuntimeError(f"Failed to parse Biome output: {e}") from e
 
