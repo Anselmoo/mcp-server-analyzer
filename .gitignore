@@ -239,3 +239,6 @@ Temporary Items
 # Built Visual Studio Code Extensions
 *.vsix
 .mcp-ai-agent-guidelines/
+
+# Node.js
+node_modules/
