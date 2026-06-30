@@ -5,6 +5,7 @@ import subprocess
 from typing import Any
 
 import pytest
+
 from mcp_server_analyzer.analyzers.biome import (  # ty: ignore[unresolved-import]
     BiomeAnalyzer,
 )
@@ -148,6 +149,20 @@ def test_check_code_empty_stdout(monkeypatch: Any) -> None:
     analyzer = BiomeAnalyzer()
     result = analyzer.check_code("const x = 1;\n")
     assert result.total_issues == 0
+
+
+def test_check_code_biome2x_echo(monkeypatch: Any) -> None:
+    """Biome 2.x echoes input to stdout instead of JSON; returns empty results with a warning."""
+    code = "const x = 1;\n"
+    responses = [
+        FakeCompletedProcess(0, "biome 2.0.0"),
+        FakeCompletedProcess(1, code),  # stdout == input code (Biome 2.x echo mode)
+    ]
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: responses.pop(0))
+    analyzer = BiomeAnalyzer()
+    result = analyzer.check_code(code)
+    assert result.total_issues == 0
+    assert result.issues == []
 
 
 def test_check_code_bad_returncode_with_stderr(monkeypatch: Any) -> None:

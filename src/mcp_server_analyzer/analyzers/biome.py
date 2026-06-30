@@ -1,9 +1,12 @@
 """Biome integration for JavaScript/TypeScript linting and formatting."""
 
 import json
+import logging
 import subprocess
 
 from mcp_server_analyzer.models import BiomeCheckResult, BiomeFormatResult, BiomeIssue
+
+logger = logging.getLogger(__name__)
 
 _BIOME_ERRORS = (
     subprocess.CalledProcessError,
@@ -120,6 +123,11 @@ class BiomeAnalyzer:
                         end_offset=span[1] if span else None,
                     )
                 )
+        elif stdout:  # stdout == code → Biome 2.x echo mode
+            logger.warning(
+                "Biome 2.x: --reporter=json does not produce JSON output for stdin; "
+                "check results will be empty. Use biome format for formatting instead."
+            )
 
         return BiomeCheckResult(
             issues=issues,
