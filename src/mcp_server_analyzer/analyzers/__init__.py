@@ -1,7 +1,8 @@
-"""Analyzers package for Ruff, ty, and Vulture integration."""
+"""Analyzers package for Ruff, ty, Vulture, and Biome integration."""
 
+from .biome import BiomeAnalyzer
 from .ruff import RuffAnalyzer
 from .ty import TyAnalyzer
 from .vulture import VultureAnalyzer
 
-__all__ = ["RuffAnalyzer", "TyAnalyzer", "VultureAnalyzer"]
+__all__ = ["BiomeAnalyzer", "RuffAnalyzer", "TyAnalyzer", "VultureAnalyzer"]
