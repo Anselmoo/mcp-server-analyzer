@@ -95,7 +95,12 @@ class BiomeAnalyzer:
 
         issues: list[BiomeIssue] = []
 
-        if result.stdout.strip():
+        # Biome ≥2.x echoes the input code back to stdout when using
+        # --stdin-file-path; the JSON reporter only works for file-based input.
+        # Detect this by checking whether stdout equals the submitted code and
+        # skip JSON parsing in that case (treating it as "no diagnostics found").
+        stdout = result.stdout.strip()
+        if stdout and stdout != code.strip():
             try:
                 output = json.loads(result.stdout)
             except json.JSONDecodeError as e:

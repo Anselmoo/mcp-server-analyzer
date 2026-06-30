@@ -412,11 +412,23 @@ class TestToolErrorOnEmptyInput:
         with pytest.raises(ToolError, match="must not be empty"):
             fn("")
 
+    def test_biome_check_whitespace_input(self):
+        """Test biome_check raises ToolError on whitespace-only input."""
+        fn = _get_fn(server.biome_check)
+        with pytest.raises(ToolError, match="must not be empty"):
+            fn("   \n\t  ")
+
     def test_biome_format_empty_input(self):
         """Test biome_format raises ToolError on empty input."""
         fn = _get_fn(server.biome_format)
         with pytest.raises(ToolError, match="must not be empty"):
             fn("")
+
+    def test_biome_format_whitespace_input(self):
+        """Test biome_format raises ToolError on whitespace-only input."""
+        fn = _get_fn(server.biome_format)
+        with pytest.raises(ToolError, match="must not be empty"):
+            fn("   ")
 
     def test_analyze_code_empty_input(self):
         """Test analyze_code raises ToolError on empty input."""
@@ -958,3 +970,23 @@ class TestAnalyzeCodeHelpers:
         fn = _get_fn(server.analyze_code)
         with pytest.raises(ToolError, match="inner error"):
             fn("x = 1")
+
+
+class TestBiomeNullAnalyzerGuards:
+    """Tests for null biome analyzer type guards in tool functions."""
+
+    def test_biome_check_null_analyzer(self, monkeypatch):
+        """Test biome_check raises ToolError when analyzer is None."""
+        monkeypatch.setattr(server, "biome_available", True)
+        monkeypatch.setattr(server, "biome_analyzer", None)
+        fn = _get_fn(server.biome_check)
+        with pytest.raises(ToolError, match="not available"):
+            fn("const x = 1;\n")
+
+    def test_biome_format_null_analyzer(self, monkeypatch):
+        """Test biome_format raises ToolError when analyzer is None."""
+        monkeypatch.setattr(server, "biome_available", True)
+        monkeypatch.setattr(server, "biome_analyzer", None)
+        fn = _get_fn(server.biome_format)
+        with pytest.raises(ToolError, match="not available"):
+            fn("const x = 1;\n")
