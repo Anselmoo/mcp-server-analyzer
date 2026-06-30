@@ -85,6 +85,41 @@ class VultureScanResult(BaseModel):
     )
 
 
+class BiomeIssue(BaseModel):
+    """Represents a single Biome lint/format diagnostic."""
+
+    rule: str = Field(
+        description="Biome rule category (e.g., lint/suspicious/noDoubleEquals)"
+    )
+    severity: str = Field(
+        description="Severity level: error, warning, information, or hint"
+    )
+    message: str = Field(description="Human-readable description of the diagnostic")
+    file: str = Field(description="Source filename passed via --stdin-file-path")
+    start_offset: int | None = Field(
+        None, description="Start byte offset from span[0], or None if unavailable"
+    )
+    end_offset: int | None = Field(
+        None, description="End byte offset from span[1], or None if unavailable"
+    )
+
+
+class BiomeCheckResult(BaseModel):
+    """Result of a biome check operation."""
+
+    issues: list[BiomeIssue] = Field(description="List of diagnostics found")
+    total_issues: int = Field(description="Total number of diagnostics")
+    errors: int = Field(description="Number of error-severity diagnostics")
+    warnings: int = Field(description="Number of warning-severity diagnostics")
+
+
+class BiomeFormatResult(BaseModel):
+    """Result of a biome format operation."""
+
+    formatted_code: str = Field(description="The formatted JS/TS code")
+    changed: bool = Field(description="Whether the code was modified during formatting")
+
+
 class RuffCICheckResult(BaseModel):
     """Result of a RUFF CI/CD check operation."""
 
