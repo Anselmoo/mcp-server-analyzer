@@ -10,6 +10,35 @@ Before enabling the full CI/CD pipeline, ensure you have:
 - [x] PyPI account for package publishing
 - [x] TestPyPI account for testing (optional but recommended)
 
+## 🟨 JavaScript/TypeScript (Biome) Prerequisites
+
+The `biome-check` and `biome-format` MCP tools require [Biome](https://biomejs.dev/)
+to be available at runtime.
+
+### Local Development
+
+Node.js 22+ is required. Install Biome via npm:
+
+```bash
+npm ci
+export PATH="$PWD/node_modules/.bin:$PATH"
+```
+
+Or install globally: `npm install -g @biomejs/biome`
+
+### CI/CD
+
+The test job automatically installs Biome via:
+- `actions/setup-node@v4` (Node.js 22)
+- `npm ci` (installs from `package-lock.json`)
+- Adds `node_modules/.bin` to `$GITHUB_PATH`
+
+### Graceful Degradation
+
+If Biome is not installed, `biome-check` and `biome-format` raise a `ToolError`
+with the message "biome is not available". All Python analysis tools continue
+to function normally.
+
 ## 🔐 GitHub Repository Settings
 
 ### Required Permissions
