@@ -84,6 +84,7 @@ uv run mcp-server-analyzer
 - **🔍 RUFF Analysis**: Comprehensive Python linting with auto-fixes
 - **🧠 ty Type Checking**: Fast Python type analysis with rule-based diagnostics
 - **🧹 Dead Code Detection**: Find unused imports, functions, and variables with VULTURE
+- **⚡ Biome JS/TS Analysis**: Fast linting and formatting for JavaScript and TypeScript
 - **📊 Quality Scoring**: Combined analysis with quality metrics
 - **🚀 FastMCP Framework**: High-performance MCP server implementation
 - **🐳 Docker Ready**: Multi-architecture containers with security signing
@@ -101,14 +102,16 @@ Explore dead code detection capabilities: **[🧹 VULTURE Analysis Preview](exam
 
 ## 🛠️ Available Tools
 
-| Tool            | Description                      | Use Case                             |
-| --------------- | -------------------------------- | ------------------------------------ |
-| `ruff-check`    | Lint Python code with RUFF       | Style violations, potential errors   |
-| `ruff-format`   | Format Python code with RUFF     | Code formatting and consistency      |
-| `ruff-check-ci` | CI/CD optimized RUFF output      | GitHub Actions, GitLab CI            |
-| `ty-check`      | Type-check Python code with ty   | Type safety, incorrect return values |
-| `vulture-scan`  | Dead code detection              | Unused imports, functions, variables |
-| `analyze-code`  | Combined Ruff + ty + Vulture analysis | Complete code quality assessment |
+| Tool            | Description                           | Use Case                             |
+| --------------- | ------------------------------------- | ------------------------------------ |
+| `ruff-check`    | Lint Python code with RUFF            | Style violations, potential errors   |
+| `ruff-format`   | Format Python code with RUFF          | Code formatting and consistency      |
+| `ruff-check-ci` | CI/CD optimized RUFF output           | GitHub Actions, GitLab CI            |
+| `ty-check`      | Type-check Python code with ty        | Type safety, incorrect return values |
+| `vulture-scan`  | Dead code detection                   | Unused imports, functions, variables |
+| `biome-check`   | Lint JS/TS code with Biome            | Style violations, potential errors   |
+| `biome-format`  | Format JS/TS code with Biome          | Code formatting and consistency      |
+| `analyze-code`  | Combined Ruff + ty + Vulture analysis | Complete code quality assessment     |
 
 ## 🔧 Configuration
 
@@ -159,8 +162,9 @@ Place `.mcp.json` at your project root:
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.13+
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
+- Node.js 22+ (for Biome JS/TS analysis)
 - [Docker](https://docker.com) (optional)
 
 ### Setup
@@ -170,8 +174,11 @@ Place `.mcp.json` at your project root:
 git clone https://github.com/anselmoo/mcp-server-analyzer.git
 cd mcp-server-analyzer
 
-# Install dependencies
+# Install Python dependencies
 uv sync --dev
+
+# Install Biome (JS/TS analyzer)
+npm ci
 
 # Run tests
 uv run pytest
