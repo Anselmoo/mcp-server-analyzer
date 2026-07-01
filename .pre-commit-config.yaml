@@ -54,11 +54,10 @@ repos:
         require_serial: true
 
   # Release policy checks with repo-release-tools
-  # rrt-branch-name is enforced by CI (Anselmoo/repo-release-tools action) — omitted here
-  # to avoid pre-commit run --all-files failures on non-conventional branch names in CI.
   - repo: https://github.com/Anselmoo/repo-release-tools
     rev: v1.9.0
     hooks:
+      - id: rrt-branch-name
       - id: rrt-commit-subject
       - id: rrt-changelog
 
