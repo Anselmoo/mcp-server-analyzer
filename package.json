@@ -1,0 +1,9 @@
+{
+  "name": "mcp-server-analyzer",
+  "version": "0.2.2",
+  "description": "Biome JS/TS analysis tooling for mcp-server-analyzer",
+  "private": true,
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0"
+  }
+}

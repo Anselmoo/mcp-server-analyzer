@@ -10,10 +10,17 @@ from fastmcp import FastMCP
 from fastmcp.exceptions import ToolError
 from mcp.types import ToolAnnotations
 
-from mcp_server_analyzer.analyzers import RuffAnalyzer, TyAnalyzer, VultureAnalyzer
+from mcp_server_analyzer.analyzers import (
+    BiomeAnalyzer,
+    RuffAnalyzer,
+    TyAnalyzer,
+    VultureAnalyzer,
+)
 from mcp_server_analyzer.models import (
     AnalysisResult,
     AnalysisSummary,
+    BiomeCheckResult,
+    BiomeFormatResult,
     RuffCheckResult,
     RuffCICheckResult,
     RuffFormatResult,
@@ -51,6 +58,14 @@ except RuntimeError as e:  # pragma: no cover
     vulture_analyzer = None
     vulture_available = False
 
+try:
+    biome_analyzer: BiomeAnalyzer | None = BiomeAnalyzer()
+    biome_available = True
+except RuntimeError as e:  # pragma: no cover
+    logger.warning("biome not available: %s", e)
+    biome_analyzer = None
+    biome_available = False
+
 
 # ─── Resources ────────────────────────────────────────────────────────────────
 
@@ -72,6 +87,8 @@ def get_overview() -> str:
         "| `ruff-check-ci` | CI-friendly lint output | `@mcp.tool` |\n"
         "| `ty-check` | Type-check with ty | `@mcp.tool` |\n"
         "| `vulture-scan` | Dead code detection | `@mcp.tool` |\n"
+        "| `biome-check`  | Lint JS/TS for errors | `@mcp.tool` |\n"
+        "| `biome-format` | Format JS/TS code     | `@mcp.tool` |\n"
         "| `analyze-code` | Combined analysis + score | `@mcp.tool` |\n\n"
         "## Quality Score\n"
         "The `analyze-code` tool produces a 0-100 quality score:\n"
@@ -237,6 +254,64 @@ def vulture_scan(code: str, min_confidence: int = 80) -> VultureScanResult:
         return vulture_analyzer.scan_code(code, min_confidence)
     except Exception as e:
         raise ToolError(f"VULTURE scan failed: {e!s}") from e
+
+
+@mcp.tool(
+    name="biome-check",
+    tags={"linting", "biome", "javascript", "typescript"},
+    annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True),
+)
+def biome_check(code: str, filename: str = "code.ts") -> BiomeCheckResult:
+    """
+    Lint JavaScript/TypeScript code using Biome.
+
+    Args:
+        code: JS/TS/JSX/TSX code to analyze
+        filename: Virtual filename used to select parser and rule set (e.g., "app.ts", "index.jsx")
+
+    Returns:
+        BiomeCheckResult containing diagnostics, counts, and severity breakdown
+
+    """
+    if not code.strip():
+        raise ToolError("Input code must not be empty.")
+    if not biome_available or biome_analyzer is None:
+        raise ToolError(
+            "biome is not available — install @biomejs/biome (npm install -D @biomejs/biome)"
+        )
+    try:
+        return biome_analyzer.check_code(code, filename)
+    except Exception as e:
+        raise ToolError(f"Biome check failed: {e!s}") from e
+
+
+@mcp.tool(
+    name="biome-format",
+    tags={"formatting", "biome", "javascript", "typescript"},
+    annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True),
+)
+def biome_format(code: str, filename: str = "code.ts") -> BiomeFormatResult:
+    """
+    Format JavaScript/TypeScript code using Biome.
+
+    Args:
+        code: JS/TS/JSX/TSX code to format
+        filename: Virtual filename used to select parser (e.g., "app.ts", "index.jsx")
+
+    Returns:
+        BiomeFormatResult containing formatted code and whether the code changed
+
+    """
+    if not code.strip():
+        raise ToolError("Input code must not be empty.")
+    if not biome_available or biome_analyzer is None:
+        raise ToolError(
+            "biome is not available — install @biomejs/biome (npm install -D @biomejs/biome)"
+        )
+    try:
+        return biome_analyzer.format_code(code, filename)
+    except Exception as e:
+        raise ToolError(f"Biome format failed: {e!s}") from e
 
 
 def _get_ruff_result(code: str, config_path: str | None) -> RuffCheckResult:

@@ -27,6 +27,8 @@ async def test_list_tools(client):
         "ruff-check-ci",
         "ty-check",
         "vulture-scan",
+        "biome-check",
+        "biome-format",
         "analyze-code",
     }
     assert expected == tool_names
@@ -184,3 +186,23 @@ async def test_tool_annotations(client):
     annotations = ruff_check_tool.annotations
     assert annotations is not None
     assert annotations.readOnlyHint is True
+
+
+@pytest.mark.asyncio
+async def test_biome_check_tool(client):
+    if not server.biome_available:
+        pytest.skip("biome not available")
+    result = await client.call_tool(
+        "biome-check", {"code": "const x = 1;\n", "filename": "code.ts"}
+    )
+    assert not result.is_error
+
+
+@pytest.mark.asyncio
+async def test_biome_format_tool(client):
+    if not server.biome_available:
+        pytest.skip("biome not available")
+    result = await client.call_tool(
+        "biome-format", {"code": "const x=1\n", "filename": "code.ts"}
+    )
+    assert not result.is_error
