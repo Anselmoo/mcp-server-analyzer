@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+- Biome JS/TS pre-commit hook and `repo-release-tools` hooks (`rrt-branch-name`, `rrt-commit-subject`, `rrt-changelog`) to `.pre-commit-config.yaml`
+- `biome-check` and `biome-format` tool documentation in `docs/tools.md`, `docs/index.md`, and `README.md`
+- Node.js 22+ prerequisite and `npm ci` step to `docs/development.md` and `README.md`
+- `CLAUDE.md` with project conventions for branch naming, tooling, and PR workflow
+- `.mcp.json` now prepends `node_modules/.bin` to `PATH` for Biome discovery in dev mode
+
 ## [0.2.2] - 2026-06-22
 
 ### Added
