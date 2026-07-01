@@ -9,6 +9,11 @@
 - `CLAUDE.md` with project conventions for branch naming, rrt workflow commands, Serena MCP tools, and PR workflow
 - `.mcp.json` now prepends `node_modules/.bin` to `PATH` for Biome discovery in dev mode
 
+### CI/CD
+- Added parallel `release-policy` job running the `Anselmoo/repo-release-tools` action on PRs and tags (branch name, commit subject, changelog enforcement)
+- `lint` job now skips all rrt pre-commit hooks (`rrt-branch-name`, `rrt-commit-subject`, `rrt-changelog`) via `SKIP` env var — all three rely on git internals unavailable in `--all-files` mode
+- `test` job now depends on both `lint` and `release-policy`, with `if: always()` guard so it runs when `release-policy` is skipped (push to non-PR branches)
+
 ## [0.2.2] - 2026-06-22
 
 ### Added

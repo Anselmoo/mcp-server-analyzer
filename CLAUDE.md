@@ -9,7 +9,8 @@
 
 ## repo-release-tools (rrt)
 - Pre-commit hooks: `rrt-branch-name` (pre-commit), `rrt-commit-subject` (commit-msg), `rrt-changelog` (pre-commit).
-- `rrt-changelog` requires actual git staging (`git diff --cached`). CI must skip it in `pre-commit run --all-files` via `SKIP: rrt-changelog` — this is a technical constraint, not redundancy. The rrt action enforces changelog on PRs/tags.
+- All three rrt hooks rely on git internals (`git diff --cached`, branch name) that are unreliable in `pre-commit run --all-files` mode. **CI skips all rrt hooks** via `SKIP: rrt-branch-name,rrt-commit-subject,rrt-changelog` in the `lint` job.
+- Release policy is enforced instead by the dedicated **parallel `release-policy` job** (runs `Anselmoo/repo-release-tools@vX.Y.Z` action) on PRs and tags. The `test` job waits for both `lint` and `release-policy`.
 - Pin to the **latest tagged version** — check installed version with `uv run rrt --version` and update `rev:` in `.pre-commit-config.yaml` to match.
 - Dependabot keeps the CI action (`Anselmoo/repo-release-tools@vX.Y.Z`) up to date automatically — do not pin it manually.
 
