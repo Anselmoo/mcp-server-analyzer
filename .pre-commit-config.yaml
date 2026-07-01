@@ -17,7 +17,7 @@ repos:
 
   # Python-specific checks with RUFF
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.14
+    rev: v0.15.20
     hooks:
       # Linter
       - id: ruff
@@ -26,14 +26,10 @@ repos:
       - id: ruff-format
 
   # Type checking with ty
-  - repo: local
+  - repo: https://github.com/astral-sh/ty-pre-commit
+    rev: v0.0.55
     hooks:
       - id: ty
-        name: ty
-        entry: uv run ty check --no-progress --output-format=concise
-        language: system
-        types_or: [python, pyi]
-        files: ^(src|tests)/.*\.py$
 
   # Pyupgrade for python version itself
   - repo: https://github.com/asottile/pyupgrade
@@ -55,7 +51,7 @@ repos:
 
   # Release policy checks with repo-release-tools
   - repo: https://github.com/Anselmoo/repo-release-tools
-    rev: v1.9.0
+    rev: v1.10.1
     hooks:
       - id: rrt-branch-name
       - id: rrt-commit-subject

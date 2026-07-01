@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from mcp_server_analyzer.analyzers.biome import (  # ty: ignore[unresolved-import]
+from mcp_server_analyzer.analyzers.biome import (
     BiomeAnalyzer,
 )
 

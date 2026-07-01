@@ -162,7 +162,7 @@ Place `.mcp.json` at your project root:
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.13+
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
 - Node.js 22+ (for Biome JS/TS analysis)
 - [Docker](https://docker.com) (optional)

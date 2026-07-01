@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Changed
+- `ty` pre-commit hook switched from local `uv run ty check` entry to the official `https://github.com/astral-sh/ty-pre-commit` hook at `v0.0.55` — uses `pass_filenames=false` and `always_run=true` for correct whole-project type checking
+
+### Added
+- Biome JS/TS pre-commit hook and `repo-release-tools` hooks (`rrt-branch-name`, `rrt-commit-subject`, `rrt-changelog`) to `.pre-commit-config.yaml`
+- `biome-check` and `biome-format` tool documentation in `docs/tools.md`, `docs/index.md`, and `README.md`
+- Node.js 22+ prerequisite and `npm ci` step to `docs/development.md` and `README.md`
+- `CLAUDE.md` with project conventions for branch naming, rrt workflow commands, Serena MCP tools, and PR workflow
+- `.mcp.json` now prepends `node_modules/.bin` to `PATH` for Biome discovery in dev mode
+
+### CI/CD
+- Added parallel `release-policy` job running the `Anselmoo/repo-release-tools` action on PRs and tags (branch name, commit subject, changelog enforcement)
+- `lint` job now skips all rrt pre-commit hooks (`rrt-branch-name`, `rrt-commit-subject`, `rrt-changelog`) via `SKIP` env var — all three rely on git internals unavailable in `--all-files` mode
+- `test` job now depends on both `lint` and `release-policy`, with `if: always()` guard so it runs when `release-policy` is skipped (push to non-PR branches)
+
 ## [0.2.2] - 2026-06-22
 
 ### Added
