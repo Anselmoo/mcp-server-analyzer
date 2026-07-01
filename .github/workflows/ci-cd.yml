@@ -65,7 +65,7 @@ jobs:
           fetch-depth: 0
 
       - name: Validate release policy (rrt)
-        uses: Anselmoo/repo-release-tools@v1.6.2
+        uses: Anselmoo/repo-release-tools@v1.10.1
         with:
           check-branch-name: "true"
           check-commit-subject: "true"
