@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Changed
+- `ty` pre-commit hook switched from local `uv run ty check` entry to the official `https://github.com/astral-sh/ty-pre-commit` hook at `v0.0.55` — uses `pass_filenames=false` and `always_run=true` for correct whole-project type checking
+
 ### Added
 - Biome JS/TS pre-commit hook and `repo-release-tools` hooks (`rrt-branch-name`, `rrt-commit-subject`, `rrt-changelog`) to `.pre-commit-config.yaml`
 - `biome-check` and `biome-format` tool documentation in `docs/tools.md`, `docs/index.md`, and `README.md`
