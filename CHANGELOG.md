@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-01
 ### Changed
 - `ty` pre-commit hook switched from local `uv run ty check` entry to the official `https://github.com/astral-sh/ty-pre-commit` hook at `v0.0.55` — uses `pass_filenames=false` and `always_run=true` for correct whole-project type checking
 
