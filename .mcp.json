@@ -1,8 +1,11 @@
 {
   "mcpServers": {
     "analyzer": {
-      "command": "uv",
-      "args": ["run", "mcp-server-analyzer"],
+      "command": "sh",
+      "args": [
+        "-c",
+        "PATH=\"$PWD/node_modules/.bin:$PATH\" uv run mcp-server-analyzer"
+      ],
       "env": {
         "PYTHONPATH": "src"
       }

@@ -148,6 +148,65 @@ Detect unused/dead code using [Vulture](https://github.com/jendrikseipp/vulture)
 
 ---
 
+## `biome-check`
+
+Lint JavaScript/TypeScript code using [Biome](https://biomejs.dev/).
+
+> **Requires Biome:** run `npm ci` (project local) or `npm install -g @biomejs/biome` (global).
+
+**Parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `code` | `string` | Yes | — | JS/TS source code to lint |
+| `filename` | `string` | No | `"code.ts"` | Virtual filename — controls parser selection (`.js`, `.ts`, `.jsx`, `.tsx`) |
+
+**Returns** `BiomeCheckResult`
+
+```json
+{
+  "issues": [
+    {
+      "rule": "lint/suspicious/noDoubleEquals",
+      "severity": "error",
+      "message": "Use === instead of ==",
+      "file": "code.ts",
+      "start_offset": 42,
+      "end_offset": 44
+    }
+  ],
+  "total_issues": 1,
+  "errors": 1,
+  "warnings": 0
+}
+```
+
+---
+
+## `biome-format`
+
+Format JavaScript/TypeScript code using [Biome](https://biomejs.dev/).
+
+> **Requires Biome:** run `npm ci` (project local) or `npm install -g @biomejs/biome` (global).
+
+**Parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `code` | `string` | Yes | — | JS/TS source code to format |
+| `filename` | `string` | No | `"code.ts"` | Virtual filename — controls parser selection |
+
+**Returns** `BiomeFormatResult`
+
+```json
+{
+  "formatted_code": "const x = 1;\n",
+  "changed": true
+}
+```
+
+---
+
 ## `analyze-code`
 
 Run Ruff, ty, and Vulture together and return a combined quality score.

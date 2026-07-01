@@ -4,6 +4,7 @@
 
 - Python 3.13+
 - [uv](https://docs.astral.sh/uv/)
+- Node.js 22+ (for Biome JS/TS analysis)
 - Docker (optional)
 
 ## Setup
@@ -12,6 +13,9 @@
 git clone https://github.com/Anselmoo/mcp-server-analyzer.git
 cd mcp-server-analyzer
 uv sync --dev
+
+# Install Biome (JS/TS analyzer)
+npm ci
 ```
 
 ## Common Tasks
@@ -41,6 +45,9 @@ uv run mcp-server-analyzer
 ## Project Structure
 
 ```
+mcp-server-analyzer/
+├── biome.json           # Biome JS/TS linter/formatter config
+├── package.json         # Node.js manifest (Biome dev dependency)
 src/mcp_server_analyzer/
 ├── __init__.py          # Package version
 ├── __main__.py          # python -m entry point
@@ -50,7 +57,8 @@ src/mcp_server_analyzer/
     ├── __init__.py
     ├── ruff.py          # Ruff linting & formatting
     ├── ty.py            # ty type checking
-    └── vulture.py       # Vulture dead code detection
+    ├── vulture.py       # Vulture dead code detection
+    └── biome.py         # Biome JS/TS linting & formatting
 tests/
     conftest.py
     test_*.py

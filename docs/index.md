@@ -94,6 +94,8 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server provid
 | **Ruff formatting** | Code formatting and consistency |
 | **ty type checking** | Fast static type analysis |
 | **Vulture dead code** | Unused imports, functions, variables |
+| **Biome JS/TS linting** | Style violations, potential errors, auto-fix hints |
+| **Biome JS/TS formatting** | Code formatting and consistency |
 | **Combined analysis** | Quality score (0-100) across all tools |
 | **CI output formats** | json, gitlab, github, sarif |
 
@@ -114,4 +116,6 @@ See the [Tools Reference](tools.md) for full parameter documentation.
 | `ruff-check-ci` | CI/CD optimized output |
 | `ty-check` | Type-check Python code |
 | `vulture-scan` | Dead code detection |
+| `biome-check` | Lint JS/TS code |
+| `biome-format` | Format JS/TS code |
 | `analyze-code` | Combined analysis + score |

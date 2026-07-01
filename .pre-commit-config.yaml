@@ -42,6 +42,25 @@ repos:
       - id: pyupgrade
         args: [--py313-plus]
 
+  # JavaScript/TypeScript linting and formatting with Biome (requires: npm ci)
+  - repo: local
+    hooks:
+      - id: biome
+        name: biome check (JS/TS)
+        entry: npx --no-install biome check --write
+        language: system
+        types_or: [javascript, jsx, ts, tsx, json]
+        pass_filenames: true
+        require_serial: true
+
+  # Release policy checks with repo-release-tools
+  - repo: https://github.com/Anselmoo/repo-release-tools
+    rev: v1.9.0
+    hooks:
+      - id: rrt-branch-name
+      - id: rrt-commit-subject
+      - id: rrt-changelog
+
 # Configuration for specific tools
 default_language_version:
   python: python3.13
