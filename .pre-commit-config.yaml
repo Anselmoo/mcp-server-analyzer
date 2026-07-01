@@ -59,6 +59,7 @@ repos:
     hooks:
       - id: rrt-branch-name
       - id: rrt-commit-subject
+      - id: rrt-changelog
 
 # Configuration for specific tools
 default_language_version:

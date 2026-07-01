@@ -7,16 +7,38 @@
   **Before creating a PR**, rename the worktree branch to follow the convention, or CI will fail.
   Use `git branch -m <old> <type>/<new>` then `git push origin -u <type>/<new>`.
 
-## repo-release-tools
-- Pre-commit uses `https://github.com/Anselmoo/repo-release-tools` hooks (`rrt-branch-name`, `rrt-commit-subject`, `rrt-changelog`).
-- Pin to the **latest tagged version** — check `pyproject.toml` (`repo-release-tools>=x.y.z`) and update the `rev:` in `.pre-commit-config.yaml` to match.
+## repo-release-tools (rrt)
+- Pre-commit hooks: `rrt-branch-name` (pre-commit), `rrt-commit-subject` (commit-msg), `rrt-changelog` (pre-commit).
+- `rrt-changelog` requires actual git staging (`git diff --cached`). CI must skip it in `pre-commit run --all-files` via `SKIP: rrt-changelog` — this is a technical constraint, not redundancy. The rrt action enforces changelog on PRs/tags.
+- Pin to the **latest tagged version** — check installed version with `uv run rrt --version` and update `rev:` in `.pre-commit-config.yaml` to match.
 - Dependabot keeps the CI action (`Anselmoo/repo-release-tools@vX.Y.Z`) up to date automatically — do not pin it manually.
-- CI skips `rrt-branch-name` in the `pre-commit run` step via `SKIP: rrt-branch-name` (env) because the rrt action enforces it separately.
+
+### Useful rrt commands
+```bash
+uv run rrt branch new <type> "<description>"  # create conventional branch
+uv run rrt git commit "<description>"          # conventional commit (infers type from branch)
+uv run rrt changelog lint                      # lint [Unreleased] entries for style
+uv run rrt bump patch                          # bump patch version across all targets
+uv run rrt doctor                              # project health check
+uv run rrt release check                       # validate version targets and changelog
+```
 
 ## GitHub / PR Creation
 - `gh` CLI does **not** work in this environment (missing token). Use `mcp__GitKraken__pull_request_create` or the GitHub MCP tool instead.
 - Target branch for PRs: `main`.
 
+## Serena MCP (LSP-powered code navigation)
+- Call `mcp__serena__initial_instructions` first in any session that uses Serena tools.
+- Key tools: `mcp__serena__find_symbol`, `mcp__serena__find_implementations`, `mcp__serena__get_symbols_overview`, `mcp__serena__get_diagnostics_for_file`, `mcp__serena__find_referencing_symbols`.
+- Prefer Serena over grep for cross-file symbol lookup and rename operations.
+
 ## Biome (JS/TS)
 - Run `npm ci` before using `biome-check`/`biome-format` MCP tools or the pre-commit Biome hook.
 - `.mcp.json` uses `sh -c "PATH=\"$PWD/node_modules/.bin:$PATH\" uv run mcp-server-analyzer"` to make Biome discoverable in dev mode.
+
+## Dev commands
+```bash
+uv sync --dev && npm ci                        # full setup
+uv run pytest                                  # all tests (100% coverage required)
+uv tool run pre-commit run --all-files         # run all hooks
+```
