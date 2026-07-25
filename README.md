@@ -12,7 +12,7 @@
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://anselmoo.github.io/mcp-server-analyzer/)
 
 
-A powerful [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that provides comprehensive Python code analysis using [**Ruff**](https://docs.astral.sh/ruff/) for linting, [**ty**](https://docs.astral.sh/ty/) for type checking, and [**Vulture**](https://github.com/jendrikseipp/vulture) for dead code detection. Perfect for AI assistants, IDEs, and automated code review workflows.
+A powerful [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that provides comprehensive Python, JavaScript, and TypeScript code analysis and security scanning using [**Ruff**](https://docs.astral.sh/ruff/) for linting, [**ty**](https://docs.astral.sh/ty/) for type checking, [**Vulture**](https://github.com/jendrikseipp/vulture) for dead code detection, [**Biome**](https://biomejs.dev/) for JS/TS linting and formatting, [**Semgrep**](https://semgrep.dev/) for security/SAST scanning, [**actionlint**](https://github.com/rhysd/actionlint) for GitHub Actions workflow linting, and [**gitleaks**](https://github.com/gitleaks/gitleaks) for secret scanning. Perfect for AI assistants, IDEs, and automated code review workflows.
 
 ## 🚀 Quick Start
 
@@ -85,6 +85,9 @@ uv run mcp-server-analyzer
 - **🧠 ty Type Checking**: Fast Python type analysis with rule-based diagnostics
 - **🧹 Dead Code Detection**: Find unused imports, functions, and variables with VULTURE
 - **⚡ Biome JS/TS Analysis**: Fast linting and formatting for JavaScript and TypeScript
+- **🛡️ Semgrep Security Scan**: Security/SAST scanning with CWE/OWASP metadata
+- **✅ actionlint Workflow Linting**: Static analysis for GitHub Actions workflow YAML
+- **🔑 gitleaks Secret Scanning**: Detect hardcoded secrets with redacted results
 - **📊 Quality Scoring**: Combined analysis with quality metrics
 - **🚀 FastMCP Framework**: High-performance MCP server implementation
 - **🐳 Docker Ready**: Multi-architecture containers with security signing
@@ -111,6 +114,9 @@ Explore dead code detection capabilities: **[🧹 VULTURE Analysis Preview](exam
 | `vulture-scan`  | Dead code detection                   | Unused imports, functions, variables |
 | `biome-check`   | Lint JS/TS code with Biome            | Style violations, potential errors   |
 | `biome-format`  | Format JS/TS code with Biome          | Code formatting and consistency      |
+| `semgrep-check` | Security/SAST scan with Semgrep       | Injection, secrets-in-code, CWE/OWASP findings |
+| `actionlint-check` | Lint GitHub Actions workflows      | Invalid expressions, misconfigured steps |
+| `gitleaks-scan` | Secret scanning with gitleaks (redacted) | Hardcoded credentials, API keys, private keys |
 | `analyze-code`  | Combined Ruff + ty + Vulture analysis | Complete code quality assessment     |
 
 ## 🔧 Configuration
@@ -165,7 +171,18 @@ Place `.mcp.json` at your project root:
 - Python 3.13+
 - [uv](https://docs.astral.sh/uv/) (recommended) or pip
 - Node.js 22+ (for Biome JS/TS analysis)
+- Go 1.23+ (only if you want to install actionlint/gitleaks binaries yourself — see below)
 - [Docker](https://docker.com) (optional)
+
+Ruff, ty, and Vulture install automatically via `uv sync`. Biome, Semgrep,
+actionlint, and gitleaks are external tools discovered on `PATH` at runtime;
+each analyzer degrades gracefully (its tool returns "not available") if its
+backing binary is missing, so none of them are hard requirements:
+
+- **Biome**: `npm ci` (project-local) or `npm install -g @biomejs/biome`
+- **Semgrep**: falls back to `uvx semgrep` automatically — no separate install needed if `uv` is available; or `pipx install semgrep`
+- **actionlint**: `go install github.com/rhysd/actionlint/cmd/actionlint@latest` or the [official install script](https://github.com/rhysd/actionlint/blob/main/scripts/download-actionlint.bash)
+- **gitleaks**: `go install github.com/gitleaks/gitleaks/v8@latest` or a [release binary](https://github.com/gitleaks/gitleaks/releases)
 
 ### Setup
 
@@ -227,9 +244,10 @@ The server provides quality scoring based on:
 ## 🔍 Data Handling & Transparency
 
 - **In-memory only**: Code passed to tools is written to a temporary file, analyzed, and the file is deleted immediately — nothing is persisted between calls.
-- **No network calls**: The server makes no outbound network connections during analysis.
-- **No telemetry**: No usage data, analytics, or crash reports are collected.
-- **Subprocess isolation**: ruff, ty, and vulture are invoked with fixed argument lists — no shell expansion or arbitrary command execution.
+- **No network calls by default**: Ruff, ty, Vulture, Biome, actionlint, and gitleaks make no outbound network connections. `semgrep-check` is the one exception — its default `config="auto"` fetches rules from the Semgrep registry over the network; pass an explicit local config (e.g. a rule file path) to run it fully offline.
+- **No telemetry**: `semgrep-check` always passes `--metrics=off` for explicit (non-`"auto"`) configs; Semgrep's own usage metrics are only sent when `config="auto"` resolves rules from the registry (a Semgrep requirement, not something this server can disable). No other tool collects usage data, analytics, or crash reports.
+- **Secrets are always redacted**: `gitleaks-scan` always runs with `--redact` — raw secret values are never returned, only the literal string `"REDACTED"`.
+- **Subprocess isolation**: All backing tools are invoked with fixed argument lists — no shell expansion or arbitrary command execution.
 
 ## 📚 Documentation
 
@@ -240,6 +258,10 @@ The server provides quality scoring based on:
 - **[Ruff Documentation](https://docs.astral.sh/ruff/)** - Python linter and formatter
 - **[ty Documentation](https://docs.astral.sh/ty/)** - Python type checker and language server
 - **[Vulture Documentation](https://github.com/jendrikseipp/vulture)** - Dead code finder
+- **[Biome Documentation](https://biomejs.dev/)** - JS/TS linter and formatter
+- **[Semgrep Documentation](https://semgrep.dev/docs/)** - Security/SAST scanner
+- **[actionlint Documentation](https://github.com/rhysd/actionlint)** - GitHub Actions workflow linter
+- **[gitleaks Documentation](https://github.com/gitleaks/gitleaks)** - Secret scanner
 
 ## 🤝 Contributing
 

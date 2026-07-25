@@ -11,19 +11,25 @@ from fastmcp.exceptions import ToolError
 from mcp.types import ToolAnnotations
 
 from mcp_server_analyzer.analyzers import (
+    ActionlintAnalyzer,
     BiomeAnalyzer,
+    GitleaksAnalyzer,
     RuffAnalyzer,
+    SemgrepAnalyzer,
     TyAnalyzer,
     VultureAnalyzer,
 )
 from mcp_server_analyzer.models import (
+    ActionlintCheckResult,
     AnalysisResult,
     AnalysisSummary,
     BiomeCheckResult,
     BiomeFormatResult,
+    GitleaksScanResult,
     RuffCheckResult,
     RuffCICheckResult,
     RuffFormatResult,
+    SemgrepScanResult,
     TyCheckResult,
     VultureScanResult,
 )
@@ -66,6 +72,30 @@ except RuntimeError as e:  # pragma: no cover
     biome_analyzer = None
     biome_available = False
 
+try:
+    semgrep_analyzer: SemgrepAnalyzer | None = SemgrepAnalyzer()
+    semgrep_available = True
+except RuntimeError as e:  # pragma: no cover
+    logger.warning("semgrep not available: %s", e)
+    semgrep_analyzer = None
+    semgrep_available = False
+
+try:
+    actionlint_analyzer: ActionlintAnalyzer | None = ActionlintAnalyzer()
+    actionlint_available = True
+except RuntimeError as e:  # pragma: no cover
+    logger.warning("actionlint not available: %s", e)
+    actionlint_analyzer = None
+    actionlint_available = False
+
+try:
+    gitleaks_analyzer: GitleaksAnalyzer | None = GitleaksAnalyzer()
+    gitleaks_available = True
+except RuntimeError as e:  # pragma: no cover
+    logger.warning("gitleaks not available: %s", e)
+    gitleaks_analyzer = None
+    gitleaks_available = False
+
 
 # ─── Resources ────────────────────────────────────────────────────────────────
 
@@ -79,7 +109,7 @@ def get_overview() -> str:
     """Overview of available analyzers and tools."""
     return (
         "# Python Analyzer MCP Server\n\n"
-        "Provides three complementary static-analysis tools:\n\n"
+        "Provides complementary static-analysis and security-scanning tools:\n\n"
         "| Tool | Purpose | Decorator |\n"
         "|------|---------|----------|\n"
         "| `ruff-check` | Lint for style & errors | `@mcp.tool` |\n"
@@ -89,6 +119,9 @@ def get_overview() -> str:
         "| `vulture-scan` | Dead code detection | `@mcp.tool` |\n"
         "| `biome-check`  | Lint JS/TS for errors | `@mcp.tool` |\n"
         "| `biome-format` | Format JS/TS code     | `@mcp.tool` |\n"
+        "| `semgrep-check` | Security/SAST scanning | `@mcp.tool` |\n"
+        "| `actionlint-check` | Lint GitHub Actions workflows | `@mcp.tool` |\n"
+        "| `gitleaks-scan` | Secret scanning (redacted) | `@mcp.tool` |\n"
         "| `analyze-code` | Combined analysis + score | `@mcp.tool` |\n\n"
         "## Quality Score\n"
         "The `analyze-code` tool produces a 0-100 quality score:\n"
@@ -312,6 +345,99 @@ def biome_format(code: str, filename: str = "code.ts") -> BiomeFormatResult:
         return biome_analyzer.format_code(code, filename)
     except Exception as e:
         raise ToolError(f"Biome format failed: {e!s}") from e
+
+
+@mcp.tool(
+    name="semgrep-check",
+    tags={"security", "sast", "semgrep"},
+    annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True),
+)
+def semgrep_check(
+    code: str, config: str = "auto", filename: str = "code.py"
+) -> SemgrepScanResult:
+    """
+    Scan code for security issues using Semgrep (SAST).
+
+    Args:
+        code: Source code to scan
+        config: Semgrep ruleset (e.g. "auto", "p/security-audit", or a local path).
+            "auto" pulls rules from the Semgrep registry over the network.
+        filename: Virtual filename used to pick the correct file suffix/parser
+
+    Returns:
+        SemgrepScanResult containing security findings, counts, and metadata
+
+    """
+    if not code.strip():
+        raise ToolError("Input code must not be empty.")
+    if not semgrep_available or semgrep_analyzer is None:
+        raise ToolError("semgrep is not available — please install the semgrep package")
+    try:
+        return semgrep_analyzer.check_code(code, config, filename)
+    except Exception as e:
+        raise ToolError(f"Semgrep check failed: {e!s}") from e
+
+
+@mcp.tool(
+    name="actionlint-check",
+    tags={"linting", "actionlint", "github-actions", "ci"},
+    annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True),
+)
+def actionlint_check(
+    code: str, filename: str = "workflow.yml"
+) -> ActionlintCheckResult:
+    """
+    Lint a GitHub Actions workflow YAML file using actionlint.
+
+    Args:
+        code: Workflow YAML source to lint
+        filename: Virtual filename reported in issue locations
+
+    Returns:
+        ActionlintCheckResult containing workflow issues and counts
+
+    """
+    if not code.strip():
+        raise ToolError("Input code must not be empty.")
+    if not actionlint_available or actionlint_analyzer is None:
+        raise ToolError(
+            "actionlint is not available — install it "
+            "(e.g. `go install github.com/rhysd/actionlint/cmd/actionlint@latest`)"
+        )
+    try:
+        return actionlint_analyzer.check_workflow(code, filename)
+    except Exception as e:
+        raise ToolError(f"actionlint check failed: {e!s}") from e
+
+
+@mcp.tool(
+    name="gitleaks-scan",
+    tags={"security", "secrets", "gitleaks"},
+    annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True),
+)
+def gitleaks_scan(code: str, filename: str = "code.txt") -> GitleaksScanResult:
+    """
+    Scan code for hardcoded secrets using gitleaks. Secret values are always redacted.
+
+    Args:
+        code: Source code to scan
+        filename: Virtual filename reported against each finding
+
+    Returns:
+        GitleaksScanResult containing findings with secret values redacted
+
+    """
+    if not code.strip():
+        raise ToolError("Input code must not be empty.")
+    if not gitleaks_available or gitleaks_analyzer is None:
+        raise ToolError(
+            "gitleaks is not available — install it "
+            "(e.g. `go install github.com/gitleaks/gitleaks/v8@latest`)"
+        )
+    try:
+        return gitleaks_analyzer.scan_code(code, filename)
+    except Exception as e:
+        raise ToolError(f"gitleaks scan failed: {e!s}") from e
 
 
 def _get_ruff_result(code: str, config_path: str | None) -> RuffCheckResult:

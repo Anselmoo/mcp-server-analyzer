@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+- Add `semgrep-check` MCP tool for security/SAST scanning, with CWE/OWASP metadata (#28)
+- Add `actionlint-check` MCP tool for GitHub Actions workflow linting (#29)
+- Add `gitleaks-scan` MCP tool for secret scanning — always redacts secret values (#30)
+- Add tool documentation for all three in `docs/tools.md`, `docs/index.md`, and `README.md`
+- Add `semgrep`, `actionlint`, and `gitleaks` pre-commit hooks to `.pre-commit-config.yaml`
+
+### CI/CD
+- Install pinned `actionlint` and `gitleaks` release binaries in `lint`/`test` jobs and add them to `PATH`
+- Skip extra CI wiring for Semgrep — it falls back to `uvx semgrep`, already available via `astral-sh/setup-uv@v6`
+
 ## [0.3.0] - 2026-07-01
 ### Changed
 - `ty` pre-commit hook switched from local `uv run ty check` entry to the official `https://github.com/astral-sh/ty-pre-commit` hook at `v0.0.55` — uses `pass_filenames=false` and `always_run=true` for correct whole-project type checking

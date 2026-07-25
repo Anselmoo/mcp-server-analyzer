@@ -1,6 +1,7 @@
 """FastMCP in-process E2E tests using Client(mcp) transport."""
 
 import json
+from pathlib import Path
 
 import pytest
 import pytest_asyncio
@@ -9,6 +10,8 @@ from fastmcp.exceptions import ToolError
 
 from mcp_server_analyzer import server
 from mcp_server_analyzer.server import mcp
+
+_SEMGREP_RULES_FIXTURE = str(Path(__file__).parent / "fixtures" / "semgrep_rules.yml")
 
 
 @pytest_asyncio.fixture
@@ -29,6 +32,9 @@ async def test_list_tools(client):
         "vulture-scan",
         "biome-check",
         "biome-format",
+        "semgrep-check",
+        "actionlint-check",
+        "gitleaks-scan",
         "analyze-code",
     }
     assert expected == tool_names
@@ -177,6 +183,9 @@ async def test_read_versions_resource(client):
     assert "ruff" in parsed
     assert "vulture" in parsed
     assert "fastmcp" in parsed
+    # semgrep/actionlint/gitleaks are external tools, not pyproject.toml
+    # dependencies, so they're excluded here (same as biome)
+    assert "semgrep" not in parsed
 
 
 @pytest.mark.asyncio
@@ -206,3 +215,49 @@ async def test_biome_format_tool(client):
         "biome-format", {"code": "const x=1\n", "filename": "code.ts"}
     )
     assert not result.is_error
+
+
+@pytest.mark.asyncio
+async def test_semgrep_check_tool(client):
+    """Uses a local rule fixture instead of config="auto" to avoid a network
+    dependency on the Semgrep registry in this e2e test."""
+    if not server.semgrep_available:
+        pytest.skip("semgrep not available")
+    result = await client.call_tool(
+        "semgrep-check",
+        {
+            "code": "eval('1+1')\n",
+            "config": _SEMGREP_RULES_FIXTURE,
+            "filename": "code.py",
+        },
+    )
+    assert not result.is_error
+    parsed = result.structured_content
+    assert parsed["total_issues"] == 1
+    assert parsed["issues"][0]["check_id"].endswith("no-eval")
+
+
+@pytest.mark.asyncio
+async def test_actionlint_check_tool(client):
+    if not server.actionlint_available:
+        pytest.skip("actionlint not available")
+    code = "on: push\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo hi\n"
+    result = await client.call_tool(
+        "actionlint-check", {"code": code, "filename": "workflow.yml"}
+    )
+    assert not result.is_error
+    parsed = result.structured_content
+    assert "total_issues" in parsed
+
+
+@pytest.mark.asyncio
+async def test_gitleaks_scan_tool(client):
+    if not server.gitleaks_available:
+        pytest.skip("gitleaks not available")
+    result = await client.call_tool(
+        "gitleaks-scan", {"code": "hello world\n", "filename": "code.txt"}
+    )
+    assert not result.is_error
+    parsed = result.structured_content
+    assert "total_findings" in parsed
+    assert "findings" in parsed

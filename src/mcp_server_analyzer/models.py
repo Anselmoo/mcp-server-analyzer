@@ -128,6 +128,76 @@ class RuffCICheckResult(BaseModel):
     success: bool = Field(description="Whether the check completed without errors")
 
 
+class SemgrepIssue(BaseModel):
+    """Represents a single Semgrep security/SAST finding."""
+
+    check_id: str = Field(description="Semgrep rule identifier that matched")
+    line: int = Field(description="Line number where the finding starts")
+    column: int = Field(description="Column number where the finding starts")
+    end_line: int = Field(description="Line number where the finding ends")
+    end_column: int = Field(description="Column number where the finding ends")
+    severity: str = Field(description="Semgrep severity (ERROR, WARNING, INFO)")
+    message: str = Field(description="Human-readable description of the finding")
+    cwe: list[str] = Field(
+        default_factory=list, description="Associated CWE identifiers, if any"
+    )
+    owasp: list[str] = Field(
+        default_factory=list, description="Associated OWASP Top 10 categories, if any"
+    )
+
+
+class SemgrepScanResult(BaseModel):
+    """Result of a Semgrep security scan operation."""
+
+    issues: list[SemgrepIssue] = Field(description="List of security findings")
+    total_issues: int = Field(description="Total number of findings")
+    error_count: int = Field(description="Number of ERROR-severity findings")
+    warning_count: int = Field(description="Number of WARNING-severity findings")
+
+
+class ActionlintIssue(BaseModel):
+    """Represents a single actionlint GitHub Actions workflow issue."""
+
+    line: int = Field(description="Line number where the issue occurs")
+    column: int = Field(description="Column number where the issue occurs")
+    end_column: int | None = Field(None, description="End column number, if reported")
+    kind: str = Field(description="actionlint rule/check category")
+    message: str = Field(description="Human-readable description of the issue")
+    snippet: str | None = Field(
+        None, description="Source snippet showing the issue location"
+    )
+
+
+class ActionlintCheckResult(BaseModel):
+    """Result of an actionlint workflow check operation."""
+
+    issues: list[ActionlintIssue] = Field(description="List of workflow issues found")
+    total_issues: int = Field(description="Total number of issues")
+
+
+class GitleaksFinding(BaseModel):
+    """Represents a single gitleaks secret-scanning finding. Secret values are always redacted."""
+
+    rule_id: str = Field(description="gitleaks rule identifier that matched")
+    description: str = Field(description="Human-readable description of the rule")
+    file: str = Field(description="Source filename the finding was reported against")
+    start_line: int = Field(description="Line number where the secret starts")
+    end_line: int = Field(description="Line number where the secret ends")
+    start_column: int = Field(description="Column number where the secret starts")
+    end_column: int = Field(description="Column number where the secret ends")
+    secret: str = Field(
+        description="Redacted secret value — always 'REDACTED', raw secrets are never returned"
+    )
+    match: str = Field(description="Redacted matched line context — always 'REDACTED'")
+
+
+class GitleaksScanResult(BaseModel):
+    """Result of a gitleaks secret scan operation."""
+
+    findings: list[GitleaksFinding] = Field(description="List of secret findings")
+    total_findings: int = Field(description="Total number of findings")
+
+
 class AnalysisSummary(BaseModel):
     """Summary statistics from a combined code analysis."""
 

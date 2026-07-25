@@ -5,6 +5,7 @@
 - Python 3.13+
 - [uv](https://docs.astral.sh/uv/)
 - Node.js 22+ (for Biome JS/TS analysis)
+- Go 1.23+ (only if installing actionlint/gitleaks binaries yourself)
 - Docker (optional)
 
 ## Setup
@@ -16,6 +17,13 @@ uv sync --dev
 
 # Install Biome (JS/TS analyzer)
 npm ci
+
+# Semgrep, actionlint, and gitleaks are external tools discovered on PATH;
+# each analyzer degrades gracefully if its binary is missing. Semgrep falls
+# back to `uvx semgrep` automatically. actionlint/gitleaks need a manual
+# install, e.g.:
+go install github.com/rhysd/actionlint/cmd/actionlint@latest
+go install github.com/gitleaks/gitleaks/v8@latest
 ```
 
 ## Common Tasks
@@ -58,7 +66,10 @@ src/mcp_server_analyzer/
     ├── ruff.py          # Ruff linting & formatting
     ├── ty.py            # ty type checking
     ├── vulture.py       # Vulture dead code detection
-    └── biome.py         # Biome JS/TS linting & formatting
+    ├── biome.py         # Biome JS/TS linting & formatting
+    ├── semgrep.py       # Semgrep security/SAST scanning
+    ├── actionlint.py    # actionlint GitHub Actions workflow linting
+    └── gitleaks.py      # gitleaks secret scanning
 tests/
     conftest.py
     test_*.py

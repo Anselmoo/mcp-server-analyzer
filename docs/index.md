@@ -5,7 +5,7 @@
 [![PyPI version](https://badge.fury.io/py/mcp-server-analyzer.svg)](https://badge.fury.io/py/mcp-server-analyzer)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server providing comprehensive Python code analysis via [**Ruff**](https://docs.astral.sh/ruff/) linting, [**ty**](https://docs.astral.sh/ty/) type checking, and [**Vulture**](https://github.com/jendrikseipp/vulture) dead code detection.
+A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server providing comprehensive Python, JavaScript, and TypeScript code analysis and security scanning via [**Ruff**](https://docs.astral.sh/ruff/) linting, [**ty**](https://docs.astral.sh/ty/) type checking, [**Vulture**](https://github.com/jendrikseipp/vulture) dead code detection, [**Biome**](https://biomejs.dev/) JS/TS linting and formatting, [**Semgrep**](https://semgrep.dev/) security/SAST scanning, [**actionlint**](https://github.com/rhysd/actionlint) GitHub Actions workflow linting, and [**gitleaks**](https://github.com/gitleaks/gitleaks) secret scanning.
 
 ## Quick Start
 
@@ -96,14 +96,18 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server provid
 | **Vulture dead code** | Unused imports, functions, variables |
 | **Biome JS/TS linting** | Style violations, potential errors, auto-fix hints |
 | **Biome JS/TS formatting** | Code formatting and consistency |
+| **Semgrep security scan** | SAST findings with CWE/OWASP metadata |
+| **actionlint workflow linting** | GitHub Actions workflow YAML validation |
+| **gitleaks secret scanning** | Hardcoded secret detection (redacted results) |
 | **Combined analysis** | Quality score (0-100) across all tools |
 | **CI output formats** | json, gitlab, github, sarif |
 
 ## Data Handling
 
 - Code is written to a **temporary file**, analyzed, then **immediately deleted** — nothing is persisted.
-- The server makes **no outbound network calls** during analysis.
-- No telemetry or usage data is collected.
+- The server makes **no outbound network calls** during analysis, except `semgrep-check`'s default `config="auto"`, which fetches rules from the Semgrep registry — pass an explicit local config to run it fully offline.
+- No telemetry or usage data is collected, except Semgrep's own usage metrics when `config="auto"` resolves rules from the registry (a Semgrep requirement, not disableable by this server).
+- `gitleaks-scan` always redacts secret values — raw secrets are never returned.
 
 ## Available Tools
 
@@ -118,4 +122,7 @@ See the [Tools Reference](tools.md) for full parameter documentation.
 | `vulture-scan` | Dead code detection |
 | `biome-check` | Lint JS/TS code |
 | `biome-format` | Format JS/TS code |
+| `semgrep-check` | Security/SAST scan |
+| `actionlint-check` | Lint GitHub Actions workflows |
+| `gitleaks-scan` | Secret scanning (redacted) |
 | `analyze-code` | Combined analysis + score |
