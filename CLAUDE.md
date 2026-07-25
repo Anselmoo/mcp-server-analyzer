@@ -37,6 +37,13 @@ uv run rrt release check                       # validate version targets and ch
 - Run `npm ci` before using `biome-check`/`biome-format` MCP tools or the pre-commit Biome hook.
 - `.mcp.json` uses `sh -c "PATH=\"$PWD/node_modules/.bin:$PATH\" uv run mcp-server-analyzer"` to make Biome discoverable in dev mode.
 
+## Semgrep, actionlint, gitleaks
+- None of these three are `pyproject.toml` dependencies — do NOT add `semgrep` there. Semgrep's PyPI package bundles its own MCP integration and pins an exact `mcp` version, which downgrades this project's own `mcp`/`fastmcp` resolution if added as a direct dependency (verified: pulls `mcp` from 1.28.x down to 1.23.3).
+- `SemgrepAnalyzer` mirrors `BiomeAnalyzer`'s discovery pattern: tries `semgrep` on `PATH` first, falls back to `uvx semgrep` — no install step needed if `uv` is available.
+- `semgrep-check`'s default `config="auto"` requires network access to the Semgrep registry and **cannot** be combined with `--metrics=off` (Semgrep rejects that combination outright) — `SemgrepAnalyzer` only appends `--metrics=off` when a non-`"auto"` config is passed.
+- `actionlint`/`gitleaks` are Go binaries with no PyPI/npm equivalent — install via `go install .../actionlint/cmd/actionlint@latest` and `go install .../gitleaks/v8@latest`, or let CI's pinned release-binary download handle it.
+- `gitleaks-scan` always passes `--redact` — this is a security-critical, non-negotiable invariant. Never remove it or make it optional.
+
 ## Dev commands
 ```bash
 uv sync --dev && npm ci                        # full setup

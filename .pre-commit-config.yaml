@@ -49,6 +49,36 @@ repos:
         pass_filenames: true
         require_serial: true
 
+  # Security/SAST scanning with Semgrep (falls back to `uvx semgrep` if not
+  # installed locally, matching semgrep-check's own discovery order)
+  - repo: local
+    hooks:
+      - id: semgrep
+        name: semgrep check (security/SAST)
+        entry: bash -c 'command -v semgrep >/dev/null 2>&1 && semgrep --config auto --error --quiet "$@" || uvx semgrep --config auto --error --quiet "$@"' --
+        language: system
+        types: [python]
+        pass_filenames: true
+
+  # GitHub Actions workflow linting with actionlint (requires: actionlint binary)
+  - repo: local
+    hooks:
+      - id: actionlint
+        name: actionlint (GitHub Actions workflows)
+        entry: actionlint
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+
+  # Secret scanning with gitleaks (requires: gitleaks binary)
+  - repo: local
+    hooks:
+      - id: gitleaks
+        name: gitleaks (secret scan)
+        entry: gitleaks dir --redact --no-banner
+        language: system
+        pass_filenames: false
+        always_run: true
+
   # Release policy checks with repo-release-tools
   - repo: https://github.com/Anselmoo/repo-release-tools
     rev: v1.10.1

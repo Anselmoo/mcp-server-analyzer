@@ -76,6 +76,27 @@ class TestServerToolsUnavailable:
         with pytest.raises(ToolError, match="not available"):
             fn("const x = 1;")
 
+    def test_semgrep_check_unavailable(self, monkeypatch):
+        """Test semgrep_check raises ToolError when unavailable."""
+        monkeypatch.setattr(server, "semgrep_available", False)
+        fn = _get_fn(server.semgrep_check)
+        with pytest.raises(ToolError, match="not available"):
+            fn("x = 1")
+
+    def test_actionlint_check_unavailable(self, monkeypatch):
+        """Test actionlint_check raises ToolError when unavailable."""
+        monkeypatch.setattr(server, "actionlint_available", False)
+        fn = _get_fn(server.actionlint_check)
+        with pytest.raises(ToolError, match="not available"):
+            fn("on: push")
+
+    def test_gitleaks_scan_unavailable(self, monkeypatch):
+        """Test gitleaks_scan raises ToolError when unavailable."""
+        monkeypatch.setattr(server, "gitleaks_available", False)
+        fn = _get_fn(server.gitleaks_scan)
+        with pytest.raises(ToolError, match="not available"):
+            fn("hello world")
+
 
 class TestServerToolsExceptions:
     """Tests for tool functions handling analyzer exceptions."""
@@ -156,6 +177,39 @@ class TestServerToolsExceptions:
         fn = _get_fn(server.biome_format)
         with pytest.raises(ToolError, match="Biome format failed"):
             fn("const x = 1;")
+
+    def test_semgrep_check_exception(self, monkeypatch):
+        """Test semgrep_check raises ToolError on analyzer exception."""
+        mock_analyzer = Mock()
+        mock_analyzer.check_code.side_effect = RuntimeError("Check failed")
+        monkeypatch.setattr(server, "semgrep_analyzer", mock_analyzer)
+        monkeypatch.setattr(server, "semgrep_available", True)
+
+        fn = _get_fn(server.semgrep_check)
+        with pytest.raises(ToolError, match="Semgrep check failed"):
+            fn("x = 1")
+
+    def test_actionlint_check_exception(self, monkeypatch):
+        """Test actionlint_check raises ToolError on analyzer exception."""
+        mock_analyzer = Mock()
+        mock_analyzer.check_workflow.side_effect = RuntimeError("Check failed")
+        monkeypatch.setattr(server, "actionlint_analyzer", mock_analyzer)
+        monkeypatch.setattr(server, "actionlint_available", True)
+
+        fn = _get_fn(server.actionlint_check)
+        with pytest.raises(ToolError, match="actionlint check failed"):
+            fn("on: push")
+
+    def test_gitleaks_scan_exception(self, monkeypatch):
+        """Test gitleaks_scan raises ToolError on analyzer exception."""
+        mock_analyzer = Mock()
+        mock_analyzer.scan_code.side_effect = RuntimeError("Scan failed")
+        monkeypatch.setattr(server, "gitleaks_analyzer", mock_analyzer)
+        monkeypatch.setattr(server, "gitleaks_available", True)
+
+        fn = _get_fn(server.gitleaks_scan)
+        with pytest.raises(ToolError, match="gitleaks scan failed"):
+            fn("hello world")
 
 
 class TestAnalyzeCodeErrorPaths:
@@ -429,6 +483,42 @@ class TestToolErrorOnEmptyInput:
         fn = _get_fn(server.biome_format)
         with pytest.raises(ToolError, match="must not be empty"):
             fn("   ")
+
+    def test_semgrep_check_empty_input(self):
+        """Test semgrep_check raises ToolError on empty input."""
+        fn = _get_fn(server.semgrep_check)
+        with pytest.raises(ToolError, match="must not be empty"):
+            fn("")
+
+    def test_semgrep_check_whitespace_input(self):
+        """Test semgrep_check raises ToolError on whitespace-only input."""
+        fn = _get_fn(server.semgrep_check)
+        with pytest.raises(ToolError, match="must not be empty"):
+            fn("   \n\t  ")
+
+    def test_actionlint_check_empty_input(self):
+        """Test actionlint_check raises ToolError on empty input."""
+        fn = _get_fn(server.actionlint_check)
+        with pytest.raises(ToolError, match="must not be empty"):
+            fn("")
+
+    def test_actionlint_check_whitespace_input(self):
+        """Test actionlint_check raises ToolError on whitespace-only input."""
+        fn = _get_fn(server.actionlint_check)
+        with pytest.raises(ToolError, match="must not be empty"):
+            fn("   \n\t  ")
+
+    def test_gitleaks_scan_empty_input(self):
+        """Test gitleaks_scan raises ToolError on empty input."""
+        fn = _get_fn(server.gitleaks_scan)
+        with pytest.raises(ToolError, match="must not be empty"):
+            fn("")
+
+    def test_gitleaks_scan_whitespace_input(self):
+        """Test gitleaks_scan raises ToolError on whitespace-only input."""
+        fn = _get_fn(server.gitleaks_scan)
+        with pytest.raises(ToolError, match="must not be empty"):
+            fn("   \n\t  ")
 
     def test_analyze_code_empty_input(self):
         """Test analyze_code raises ToolError on empty input."""
@@ -990,3 +1080,31 @@ class TestBiomeNullAnalyzerGuards:
         fn = _get_fn(server.biome_format)
         with pytest.raises(ToolError, match="not available"):
             fn("const x = 1;\n")
+
+
+class TestSecurityAnalyzerNullAnalyzerGuards:
+    """Tests for null analyzer type guards in the semgrep/actionlint/gitleaks tools."""
+
+    def test_semgrep_check_null_analyzer(self, monkeypatch):
+        """Test semgrep_check raises ToolError when analyzer is None."""
+        monkeypatch.setattr(server, "semgrep_available", True)
+        monkeypatch.setattr(server, "semgrep_analyzer", None)
+        fn = _get_fn(server.semgrep_check)
+        with pytest.raises(ToolError, match="not available"):
+            fn("x = 1\n")
+
+    def test_actionlint_check_null_analyzer(self, monkeypatch):
+        """Test actionlint_check raises ToolError when analyzer is None."""
+        monkeypatch.setattr(server, "actionlint_available", True)
+        monkeypatch.setattr(server, "actionlint_analyzer", None)
+        fn = _get_fn(server.actionlint_check)
+        with pytest.raises(ToolError, match="not available"):
+            fn("on: push\n")
+
+    def test_gitleaks_scan_null_analyzer(self, monkeypatch):
+        """Test gitleaks_scan raises ToolError when analyzer is None."""
+        monkeypatch.setattr(server, "gitleaks_available", True)
+        monkeypatch.setattr(server, "gitleaks_analyzer", None)
+        fn = _get_fn(server.gitleaks_scan)
+        with pytest.raises(ToolError, match="not available"):
+            fn("hello world\n")

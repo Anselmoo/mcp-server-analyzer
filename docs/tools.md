@@ -1,6 +1,6 @@
 # Tools Reference
 
-All tools accept Python source code as a string and return structured Pydantic models serialized to JSON.
+All tools accept source code as a string and return structured Pydantic models serialized to JSON.
 
 ---
 
@@ -207,6 +207,114 @@ Format JavaScript/TypeScript code using [Biome](https://biomejs.dev/).
 
 ---
 
+## `semgrep-check`
+
+Scan code for security issues using [Semgrep](https://semgrep.dev/) (SAST).
+
+> **Requires Semgrep:** not a project dependency — uses `semgrep` if it's on `PATH`, otherwise falls back to `uvx semgrep` (no separate install needed if `uv`/`uvx` is available).
+
+**Parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `code` | `string` | Yes | — | Source code to scan |
+| `config` | `string` | No | `"auto"` | Semgrep ruleset (`"auto"`, `"p/security-audit"`, or a local rule file/path). `"auto"` calls the Semgrep registry over the network; any other value runs fully offline with `--metrics=off`. |
+| `filename` | `string` | No | `"code.py"` | Virtual filename — controls the file suffix/parser used |
+
+**Returns** `SemgrepScanResult`
+
+```json
+{
+  "issues": [
+    {
+      "check_id": "python.lang.security.audit.subprocess-shell-true",
+      "line": 5,
+      "column": 38,
+      "end_line": 5,
+      "end_column": 42,
+      "severity": "ERROR",
+      "message": "Found 'subprocess' function 'run' with 'shell=True'.",
+      "cwe": ["CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"],
+      "owasp": ["A03:2021 - Injection"]
+    }
+  ],
+  "total_issues": 1,
+  "error_count": 1,
+  "warning_count": 0
+}
+```
+
+---
+
+## `actionlint-check`
+
+Lint a GitHub Actions workflow YAML file using [actionlint](https://github.com/rhysd/actionlint).
+
+> **Requires actionlint:** install the binary, e.g. `go install github.com/rhysd/actionlint/cmd/actionlint@latest` or via the [official install script](https://github.com/rhysd/actionlint/blob/main/scripts/download-actionlint.bash).
+
+**Parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `code` | `string` | Yes | — | Workflow YAML source to lint |
+| `filename` | `string` | No | `"workflow.yml"` | Virtual filename reported in issue locations |
+
+**Returns** `ActionlintCheckResult`
+
+```json
+{
+  "issues": [
+    {
+      "line": 8,
+      "column": 31,
+      "end_column": 32,
+      "kind": "expression",
+      "message": "unexpected end of input while parsing variable access, function call, null, bool, int, float or string",
+      "snippet": "        if: ${{ badcondition( }}\n                              ^~"
+    }
+  ],
+  "total_issues": 1
+}
+```
+
+---
+
+## `gitleaks-scan`
+
+Scan code for hardcoded secrets using [gitleaks](https://github.com/gitleaks/gitleaks). Secret values are always redacted — `secret` and `match` are always the literal string `"REDACTED"`, never the actual matched text.
+
+> **Requires gitleaks:** install the binary, e.g. `go install github.com/gitleaks/gitleaks/v8@latest` or download a [release binary](https://github.com/gitleaks/gitleaks/releases).
+
+**Parameters**
+
+| Name | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `code` | `string` | Yes | — | Source code to scan |
+| `filename` | `string` | No | `"code.txt"` | Virtual filename reported against each finding |
+
+**Returns** `GitleaksScanResult`
+
+```json
+{
+  "findings": [
+    {
+      "rule_id": "private-key",
+      "description": "Identified a Private Key, which may compromise cryptographic security and sensitive data encryption.",
+      "file": "key.pem",
+      "start_line": 1,
+      "end_line": 28,
+      "start_column": 1,
+      "end_column": 26,
+      "secret": "REDACTED",
+      "match": "REDACTED"
+    }
+  ],
+  "total_findings": 1
+}
+```
+
+---
+
 ## `analyze-code`
 
 Run Ruff, ty, and Vulture together and return a combined quality score.
@@ -259,7 +367,7 @@ Score is clamped to `[0, 100]`.
 All tools raise a `ToolError` (MCP structured error) when:
 
 - Input `code` is empty or whitespace-only.
-- The backing tool (ruff/ty/vulture) is not installed.
+- The backing tool (ruff/ty/vulture/biome/semgrep/actionlint/gitleaks) is not installed.
 - The tool process exits with an unexpected error.
 
 MCP clients receive the error as a structured response with `isError: true`.

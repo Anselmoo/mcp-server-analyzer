@@ -39,6 +39,86 @@ If Biome is not installed, `biome-check` and `biome-format` raise a `ToolError`
 with the message "biome is not available". All Python analysis tools continue
 to function normally.
 
+## 🛡️ Security/SAST (Semgrep) Prerequisites
+
+The `semgrep-check` MCP tool requires [Semgrep](https://semgrep.dev/) to be
+available at runtime. Semgrep is **not** a project dependency (adding it to
+`pyproject.toml` pins an exact `mcp` version via Semgrep's own bundled MCP
+integration, which would downgrade this project's MCP stack) — it's
+discovered on `PATH`, falling back to `uvx semgrep`.
+
+### Local Development
+
+No install step is required if [uv](https://docs.astral.sh/uv/) is
+available — `semgrep-check` automatically falls back to `uvx semgrep`. To use
+a locally installed `semgrep` instead: `pipx install semgrep`.
+
+### CI/CD
+
+No dedicated CI step is needed — `astral-sh/setup-uv@v6` already provides
+`uvx`, which the analyzer falls back to automatically.
+
+### Graceful Degradation
+
+If neither `semgrep` nor `uvx` is available, `semgrep-check` raises a
+`ToolError` with the message "semgrep is not available". All other tools
+continue to function normally.
+
+## ✅ GitHub Actions (actionlint) Prerequisites
+
+The `actionlint-check` MCP tool requires the [actionlint](https://github.com/rhysd/actionlint)
+Go binary to be available on `PATH`.
+
+### Local Development
+
+Go 1.23+ is required to build from source, or install a release binary
+directly:
+
+```bash
+go install github.com/rhysd/actionlint/cmd/actionlint@latest
+# or
+bash <(curl -sSf https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+```
+
+### CI/CD
+
+The `lint` and `test` jobs install a pinned release binary via the official
+download script and add it to `$GITHUB_PATH`.
+
+### Graceful Degradation
+
+If actionlint is not installed, `actionlint-check` raises a `ToolError` with
+the message "actionlint is not available". All other tools continue to
+function normally.
+
+## 🔑 Secret Scanning (gitleaks) Prerequisites
+
+The `gitleaks-scan` MCP tool requires the [gitleaks](https://github.com/gitleaks/gitleaks)
+Go binary to be available on `PATH`.
+
+### Local Development
+
+Go 1.23+ is required to build from source, or install a release binary
+directly:
+
+```bash
+go install github.com/gitleaks/gitleaks/v8@latest
+# or download a release binary from
+# https://github.com/gitleaks/gitleaks/releases
+```
+
+### CI/CD
+
+The `lint` and `test` jobs download a pinned release binary and add it to
+`$GITHUB_PATH`.
+
+### Graceful Degradation
+
+If gitleaks is not installed, `gitleaks-scan` raises a `ToolError` with the
+message "gitleaks is not available". All other tools continue to function
+normally. Regardless of availability, `gitleaks-scan` always runs with
+`--redact` — raw secret values are never returned by the tool.
+
 ## 🔐 GitHub Repository Settings
 
 ### Required Permissions
