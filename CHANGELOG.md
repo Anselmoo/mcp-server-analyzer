@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-08-30
+
+### Fixed
+- MCP Registry publish 403: `server.json` name, the README `mcp-name` marker, and the Dockerfile `io.modelcontextprotocol.server.name` label used the wrong namespace casing (`io.github.anselmoo`); corrected to the registry-required `io.github.Anselmoo` to match the GitHub OIDC repository-owner claim exactly
+
 ## [0.4.0] - 2026-08-30
 
 ### Added

@@ -27,7 +27,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Production stage with minimal Python runtime
 FROM python:3.13-slim-bookworm AS runtime
 
-LABEL io.modelcontextprotocol.server.name="io.github.anselmoo/mcp-server-analyzer"
+LABEL io.modelcontextprotocol.server.name="io.github.Anselmoo/mcp-server-analyzer"
 
 # Set working directory
 WORKDIR /app
