@@ -1,0 +1,27 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.anselmoo/mcp-server-analyzer",
+  "description": "MCP server for Python, JavaScript, and TypeScript code analysis with Ruff, ty, Vulture, and Biome",
+  "version": "0.3.0",
+  "repository": {
+    "url": "https://github.com/Anselmoo/mcp-server-analyzer",
+    "source": "github",
+    "id": "1028653578"
+  },
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "mcp-server-analyzer",
+      "version": "0.3.0",
+      "runtimeHint": "uvx",
+      "transport": { "type": "stdio" }
+    },
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/anselmoo/mcp-server-analyzer:0.3.0",
+      "runtimeHint": "docker",
+      "transport": { "type": "stdio" }
+    }
+  ]
+}

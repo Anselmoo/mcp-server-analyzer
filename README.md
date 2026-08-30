@@ -1,5 +1,7 @@
 # MCP Server Analyzer for Python 🐍🔍
 
+<!-- mcp-name: io.github.anselmoo/mcp-server-analyzer -->
+
 [![SafeSkill 92/100](https://img.shields.io/badge/SafeSkill-92%2F100_Verified%20Safe-brightgreen)](https://safeskill.dev/scan/anselmoo-mcp-server-analyzer)
 
 [![CI/CD Pipeline](https://github.com/anselmoo/mcp-server-analyzer/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/anselmoo/mcp-server-analyzer/actions/workflows/ci-cd.yml)
