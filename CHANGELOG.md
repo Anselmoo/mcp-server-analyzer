@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+- `server.json` manifest for the official MCP Registry, with PyPI and OCI/GHCR package entries
+- `mcp-name` README marker and `io.modelcontextprotocol.server.name` Dockerfile label for MCP Registry ownership verification
+
+### CI/CD
+- `publish-mcp-registry` job publishes `server.json` to the official MCP Registry via `mcp-publisher`/`github-oidc` on release tags
+- `lint` job now validates `server.json` with `mcp-publisher validate` on every PR
+- `mcp-publisher` download now uses `curl -fsSL` (fails fast on a bad download instead of piping an error body into `tar`), `chmod +x`s the extracted binary, and pins a specific release instead of `latest`
+
 ## [0.3.0] - 2026-07-01
 ### Changed
 - `ty` pre-commit hook switched from local `uv run ty check` entry to the official `https://github.com/astral-sh/ty-pre-commit` hook at `v0.0.55` — uses `pass_filenames=false` and `always_run=true` for correct whole-project type checking
