@@ -9,6 +9,7 @@
 ### CI/CD
 - `publish-mcp-registry` job publishes `server.json` to the official MCP Registry via `mcp-publisher`/`github-oidc` on release tags
 - `lint` job now validates `server.json` with `mcp-publisher validate` on every PR
+- `mcp-publisher` download now uses `curl -fsSL` (fails fast on a bad download instead of piping an error body into `tar`), `chmod +x`s the extracted binary, and pins a specific release instead of `latest`
 
 ## [0.3.0] - 2026-07-01
 ### Changed
