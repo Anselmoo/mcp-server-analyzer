@@ -2,9 +2,12 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-30
+
 ### Added
 - `server.json` manifest for the official MCP Registry, with PyPI and OCI/GHCR package entries
 - `mcp-name` README marker and `io.modelcontextprotocol.server.name` Dockerfile label for MCP Registry ownership verification
+- `setting.json` Adding the mcp registry workflow the CI/CD release
 
 ### CI/CD
 - `publish-mcp-registry` job publishes `server.json` to the official MCP Registry via `mcp-publisher`/`github-oidc` on release tags

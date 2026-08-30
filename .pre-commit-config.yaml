@@ -51,7 +51,7 @@ repos:
 
   # Release policy checks with repo-release-tools
   - repo: https://github.com/Anselmoo/repo-release-tools
-    rev: v1.10.1
+    rev: v1.16.0
     hooks:
       - id: rrt-branch-name
       - id: rrt-commit-subject
